@@ -64,14 +64,14 @@ class HyperSwitchVIFDriver(vif_hypervm_driver.AgentVMVIFDriver):
 
     def __init__(self, *args, **kwargs):
         super(HyperSwitchVIFDriver, self).__init__(*args, **kwargs)
-        self.mgnt_nic = cfg.CONF.hyperagent.network_mngt_interface
-        self.vm_nic = cfg.CONF.hyperagent.network_vms_interface
+        self.mgnt_nic = cfg.CONF.hyperswitch.network_mngt_interface
+        self.vm_nic = cfg.CONF.hyperswitch.network_vms_interface
         if self.vm_nic == 'eth0':
-            self.vm_cidr = cfg.CONF.hyperagent.eth0_cidr
+            self.vm_cidr = cfg.CONF.hyperswitch.eth0_cidr
         if self.vm_nic == 'eth1':
-            self.vm_cidr = cfg.CONF.hyperagent.eth1_cidr
+            self.vm_cidr = cfg.CONF.hyperswitch.eth1_cidr
         if self.vm_nic == 'eth2':
-            self.vm_cidr = cfg.CONF.hyperagent.eth2_cidr
+            self.vm_cidr = cfg.CONF.hyperswitch.eth2_cidr
         if not self.vm_cidr or self.vm_cidr.split('/')[0] == '':
             lease_file = '/var/lib/dhcp/dhclient.%s.leases' % self.vm_nic
             mask = None
@@ -83,7 +83,7 @@ class HyperSwitchVIFDriver(vif_hypervm_driver.AgentVMVIFDriver):
                     if 'fixed-address' in line:
                         ip = line.split()[1].split(';')[0]
             self.vm_cidr = '%s/%s' % (ip, get_nsize(mask))
-        self.br_vpn = cfg.CONF.hyperagent.vpn_bridge_name
+        self.br_vpn = cfg.CONF.hyperswitch.vpn_bridge_name
 
     def startup_init(self):
         # plug the agent vm vifs
@@ -136,7 +136,7 @@ class VPNBridgeHandler(ofp_handler.OFPHandler):
         self._drivers = list()
         self._drivers.append(OpenVPNTCP(first_port=1194))
         self._drivers.append(OpenVPNUDP(first_port=1194))
-        self.br_vpn = cfg.CONF.hyperagent.vpn_bridge_name
+        self.br_vpn = cfg.CONF.hyperswitch.vpn_bridge_name
 
     def mod_flow(self,
                  datapath,

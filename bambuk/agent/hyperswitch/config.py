@@ -15,11 +15,27 @@ LOG = logging.getLogger(__name__)
 
 # import the configuration options
 cfg.CONF.import_opt('host', 'neutron.common.config')
-cfg.CONF.import_opt('root_helper', 'neutron.common.config')
-cfg.CONF.import_opt('report_interval', 'neutron.common.config')
-cfg.CONF.import_opt('host', 'neutron.common.config')
 cfg.CONF.import_opt('ovs_vsctl_timeout', 'neutron.agent.common.ovs_lib')
-cfg.CONF.import_opt('network_device_mtu', 'neutron.agent.interface')
+
+
+OPTS = [
+    cfg.IntOpt('network_device_mtu',
+               deprecated_for_removal=True,
+               help=_('MTU setting for device. This option will be removed in '
+                      'Newton. Please use the system-wide segment_mtu setting '
+                      'which the agents will take into account when wiring '
+                      'VIFs.')),
+]
+cfg.CONF.register_opts(OPTS)
+OPTS_AGENT = [
+    cfg.StrOpt('root_helper', default='sudo',
+               help=_("Root helper application. "
+                      "Use 'sudo neutron-rootwrap /etc/neutron/rootwrap.conf' "
+                      "to use the real root filter facility. Change to 'sudo' "
+                      "to skip the filtering and just run the command "
+                      "directly.")),
+]
+cfg.CONF.register_opts(OPTS_AGENT, 'AGENT')
 
 
 def init(args, **kwargs):

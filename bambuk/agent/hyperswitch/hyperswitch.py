@@ -28,7 +28,7 @@ class HyperSwitchAgentCallback(object):
     RPC_API_VERSION = '1.0'
 
     def __init__(self):
-        target = messaging.Target(topic='hyper-switch-callback',
+        target = messaging.Target(topic='hyperswitch-callback',
                                   version='1.0',
                                   exchange='hyperswitch')
         self.client = rpc.get_client(target)
@@ -49,9 +49,9 @@ class HyperSwitchAgent(object):
 
         # the queue client for plug/unplug calls from nova driver
         endpoints = [self]
-        target = messaging.Target(topic='hyper-agent-update',
+        target = messaging.Target(topic='hyperswitch-update',
                                   version='1.0',
-                                  exchange='hyperagent',
+                                  exchange='hyperswitch',
                                   server=cfg.CONF.host)
         self.server = rpc.get_server(target, endpoints)
 

@@ -21,7 +21,7 @@ class HyperSwitchCallback(object):
 
     def __init__(self):
         endpoints = [self]
-        target = messaging.Target(topic='hyper-switch-callback',
+        target = messaging.Target(topic='hyperswitch-callback',
                                   version='1.0',
                                   exchange='hyperswitch',
                                   server=cfg.CONF.host)
@@ -64,7 +64,7 @@ class HyperSwitchAPI(object):
     """
 
     def __init__(self):
-        target = messaging.Target(topic='hyper-switch-callback-update',
+        target = messaging.Target(topic='hyperswitch-update',
                                   version='1.0',
                                   exchange='hyperswitch')
         self.client = rpc.get_client(target)
