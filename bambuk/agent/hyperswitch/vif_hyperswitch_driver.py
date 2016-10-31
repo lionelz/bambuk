@@ -6,8 +6,8 @@ from oslo_config import cfg
 
 from oslo_log import log as logging
 
-from bambuk.agent.hyperagent import hyper_agent_utils as hu
-from bambuk.agent.hyperagent import vif_agent
+from bambuk.agent.hyperswitch import hyperswitch_utils as hu
+from bambuk.agent.hyperswitch import vif_hypervm_driver
 
 from ryu.base import app_manager
 from ryu.controller import ofp_event
@@ -21,6 +21,7 @@ from ryu.lib.packet import ipv4
 from ryu.ofproto import ether
 from ryu.ofproto import inet
 from ryu.ofproto import ofproto_v1_3
+
 
 hyper_swith_agent_opts = [
     cfg.StrOpt('network_mngt_interface',
@@ -48,7 +49,7 @@ cfg.CONF.register_opts(hyper_swith_agent_opts, 'hyperswitch')
 
 
 LOG = logging.getLogger(__name__)
-NIC_NAME_LEN = vif_agent.NIC_NAME_LEN
+NIC_NAME_LEN = vif_hypervm_driver.NIC_NAME_LEN
 
 
 def get_nsize(netmask):
@@ -58,8 +59,8 @@ def get_nsize(netmask):
     return str(len(binary_str.rstrip('0')))
 
 
-class HyperSwitchVIFDriver(vif_agent.AgentVMVIFDriver):
-    """VIF driver for hypernode networking."""
+class HyperSwitchVIFDriver(vif_hypervm_driver.AgentVMVIFDriver):
+    """VIF driver for hyperswitch networking."""
 
     def __init__(self, *args, **kwargs):
         super(HyperSwitchVIFDriver, self).__init__(*args, **kwargs)
@@ -118,7 +119,7 @@ class HyperSwitchVIFDriver(vif_agent.AgentVMVIFDriver):
         # run the ryu appllication VPNBridgeHandler
         app_mgr = app_manager.AppManager.get_instance()
         self.open_flow_app = app_mgr.instantiate(VPNBridgeHandler,
-                                                 vif_driver=self)
+                                                 vif_hypervm_driver=self)
         self.open_flow_app.start()
 
     def cleanup(self):
@@ -131,7 +132,7 @@ class VPNBridgeHandler(ofp_handler.OFPHandler):
 
     def __init__(self, *args, **kwargs):
         super(VPNBridgeHandler, self).__init__(*args, **kwargs)
-        self._vif_driver = kwargs['vif_driver']
+        self._vif_driver = kwargs['vif_hypervm_driver']
         self._drivers = list()
         self._drivers.append(OpenVPNTCP(first_port=1194))
         self._drivers.append(OpenVPNUDP(first_port=1194))

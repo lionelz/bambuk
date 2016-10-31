@@ -1,5 +1,5 @@
-from bambuk.agent.hyperagent import hyper_agent_utils as hu
-from bambuk.agent.hyperagent import hyper_vif_driver
+from bambuk.agent.hyperswitch import hyperswitch_utils as hu
+from bambuk.agent.hyperswitch import vif_driver
 
 from oslo_concurrency import lockutils
 
@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 NIC_NAME_LEN = 14
 
 
-class AgentVMVIFDriver(hyper_vif_driver.HyperVIFDriver):
+class AgentVMVIFDriver(vif_driver.HyperVIFDriver):
     """VIF driver for hypervm networking."""
 
     def __init__(self, *args, **kwargs):

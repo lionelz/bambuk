@@ -8,10 +8,10 @@ import oslo_messaging as messaging
 
 from bambuk import version
 
-
 messaging.set_transport_defaults(control_exchange='hyperswitch')
 
 LOG = logging.getLogger(__name__)
+
 
 # import the configuration options
 cfg.CONF.import_opt('host', 'neutron.common.config')

@@ -1,9 +1,12 @@
 import sys
 
 import eventlet
+from agent.hyperswitch import vif_hyperswitch_driver
 eventlet.monkey_patch()
 
 import oslo_messaging as messaging
+
+from bambuk.agent.hyperswitch import config
 
 from oslo_config import cfg
 
@@ -13,7 +16,6 @@ from oslo_utils import importutils
 
 from neutron import context
 from neutron.common import rpc
-
 from neutron.i18n import _LI
 
 
@@ -57,8 +59,7 @@ class HyperSwitchAgent(object):
         self.call_back = HyperSwitchAgentCallback()
 
         # instance according to configuration
-        self.vif_driver = importutils.import_object(
-            cfg.CONF.hyper_agent_vif_driver,
+        self.vif_driver = vif_hyperswitch_driver.HyperSwitchVIFDriver(
             instance_id=self.instance_id,
             call_back=self.call_back)
 
