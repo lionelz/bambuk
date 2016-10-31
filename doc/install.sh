@@ -30,8 +30,8 @@ python ./setup.py install
 bin_files='hyperswitch-config'
 for f in $bin_files
 do
-    rm -f /usr/bin/$f
-    cp $FROM_DIR/bin/$f /usr/bin
+    rm -f /usr/local/bin/$f
+    cp $FROM_DIR/bin/$f /usr/local/bin
 done
 
 # init conf

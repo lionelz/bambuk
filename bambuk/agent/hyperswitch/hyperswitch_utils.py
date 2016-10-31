@@ -22,7 +22,7 @@ def _get_root_helper():
     if CONF.workarounds.disable_rootwrap:
         cmd = 'sudo'
     else:
-        cmd = 'sudo /usr/bin/hyperswitch-rootwrap %s' % CONF.rootwrap_config
+        cmd = 'sudo /usr/local/bin/hyperswitch-rootwrap %s' % CONF.rootwrap_config
     return cmd
 
 
