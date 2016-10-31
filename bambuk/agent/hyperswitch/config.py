@@ -25,6 +25,10 @@ OPTS = [
                       'Newton. Please use the system-wide segment_mtu setting '
                       'which the agents will take into account when wiring '
                       'VIFs.')),
+    cfg.StrOpt('rootwrap_config',
+               default="/etc/hyperswitch/rootwrap.conf",
+               help='Path to the rootwrap configuration file to use for '
+                    'running commands as root'),
 ]
 cfg.CONF.register_opts(OPTS)
 OPTS_AGENT = [

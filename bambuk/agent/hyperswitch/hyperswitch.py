@@ -1,18 +1,16 @@
 import sys
 
 import eventlet
-from agent.hyperswitch import vif_hyperswitch_driver
 eventlet.monkey_patch()
 
 import oslo_messaging as messaging
 
 from bambuk.agent.hyperswitch import config
+from bambuk.agent.hyperswitch import vif_hyperswitch_driver
 
 from oslo_config import cfg
 
 from oslo_log import log as logging
-
-from oslo_utils import importutils
 
 from neutron import context
 from neutron.common import rpc
