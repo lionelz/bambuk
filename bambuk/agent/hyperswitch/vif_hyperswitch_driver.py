@@ -86,15 +86,11 @@ class HyperSwitchVIFDriver(vif_hypervm_driver.AgentVMVIFDriver):
         self.br_vpn = cfg.CONF.hyperswitch.vpn_bridge_name
 
     def startup_init(self):
-        # plug the agent vm vifs
-        super(HyperSwitchVIFDriver, self).startup_init()
-
         # prepare the VPN bridge
-
         vm_nic_cidr = self.vm_cidr
         vm_nic_mac = hu.get_mac(self.vm_nic)
         # create the br-vpn bridge
-        hu.add_ovs_bridge(self.br_vpn)
+        hu.add_ovs_bridge(self.br_vpn, vm_nic_mac)
 
         # Set the IP
         hu.execute('ip', 'addr', 'flush', 'dev', self.vm_nic,

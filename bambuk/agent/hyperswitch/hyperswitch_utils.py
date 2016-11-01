@@ -19,11 +19,7 @@ CONF = cfg.CONF
 
 
 def _get_root_helper():
-    if CONF.workarounds.disable_rootwrap:
-        cmd = 'sudo'
-    else:
-        cmd = 'sudo hyperswitch-rootwrap %s' % CONF.rootwrap_config
-    return cmd
+    return 'sudo hyperswitch-rootwrap %s' % CONF.rootwrap_config
 
 
 def execute(*cmd, **kwargs):
@@ -176,8 +172,10 @@ def del_ovs_bridge(br_name):
     ovs_vsctl(['--if-exists', 'del-br', br_name])
 
 
-def add_ovs_bridge(br_name):
+def add_ovs_bridge(br_name, mac_address):
     ovs_vsctl(['--may-exist', 'add-br', br_name])
+    ovs_vsctl(['set', 'bridge', br_name,
+               'other-config:hwaddr=%s' % mac_address])
 
 
 def add_ovs_port(bridge, dev):

@@ -19,9 +19,7 @@ class AgentVMVIFDriver(vif_driver.HyperVIFDriver):
         super(AgentVMVIFDriver, self).__init__()
 
     def startup_init(self):
-        net_info = self.call_back.get_vifs_for_instance(self.instance_id)
-        for vif in net_info:
-            self.plug(self.instance_id, vif)
+        pass
 
     def cleanup(self):
         # nothing to do
