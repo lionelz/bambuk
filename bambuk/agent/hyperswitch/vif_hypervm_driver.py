@@ -39,30 +39,23 @@ class AgentVMVIFDriver(vif_driver.HyperVIFDriver):
         return (self.get_tap_name(iface_id),
                 ("tvo%s" % iface_id)[:NIC_NAME_LEN])
 
-    def get_bridge_name(self, vif):
-        br_int = vif['network']['bridge']
-        if br_int:
-            return br_int
+    def get_bridge_name(self):
         return 'br-int'
 
-    def get_ovs_interfaceid(self, vif):
-        return vif.get('ovs_interfaceid') or vif.get('id')
-
-    def create_br_vnic(self, instance_id, vif):
-        br_name = self.get_br_name(vif.get('id'))
-        br_int_veth, qbr_veth = self.get_veth_pair_names(vif.get('id'))
-        iface_id = self.get_ovs_interfaceid(vif)
+    def create_br_vnic(self, instance_id, vif_id, mac):
+        br_name = self.get_br_name(vif_id)
+        br_int_veth, qbr_veth = self.get_veth_pair_names(vif_id)
 
         # veth for br-int creation
         if not hu.device_exists(qbr_veth):
             hu.create_veth_pair(br_int_veth, qbr_veth)
 
         # add in br-int the veth
-        hu.create_ovs_vif_port(self.get_bridge_name(vif),
-                               qbr_veth, iface_id,
-                               vif['address'], instance_id)
+        hu.create_ovs_vif_port(self.get_bridge_name(),
+                               qbr_veth, vif_id,
+                               mac, instance_id)
 
-        tap_veth, vnic_veth = self.get_veth_pair_names2(vif.get('id'))
+        tap_veth, vnic_veth = self.get_veth_pair_names2(vif_id)
         # veth for virtual nic creation
         if not hu.device_exists(vnic_veth):
             hu.create_veth_pair(tap_veth, vnic_veth)
@@ -71,12 +64,12 @@ class AgentVMVIFDriver(vif_driver.HyperVIFDriver):
         hu.create_linux_bridge(br_name, [br_int_veth, tap_veth])
         return vnic_veth
 
-    def remove_br_vnic(self, vif):
-        v1_name, v2_name = self.get_veth_pair_names(vif.get('id'))
-        t1_name, t2_name = self.get_veth_pair_names2(vif.get('id'))
+    def remove_br_vnic(self, vif_id):
+        v1_name, v2_name = self.get_veth_pair_names(vif_id)
+        t1_name, t2_name = self.get_veth_pair_names2(vif_id)
 
         # remove the br-int ports
-        hu.delete_ovs_vif_port(self.get_bridge_name(vif), v2_name)
+        hu.delete_ovs_vif_port(self.get_bridge_name(), v2_name)
 
         # remove veths
         hu.delete_net_dev(v1_name)
@@ -85,7 +78,7 @@ class AgentVMVIFDriver(vif_driver.HyperVIFDriver):
         hu.delete_net_dev(t2_name)
 
         # remove linux bridge
-        br_name = self.get_br_name(vif.get('id'))
+        br_name = self.get_br_name(vif_id)
         hu.delete_linux_bridge(br_name)
         return t2_name
 

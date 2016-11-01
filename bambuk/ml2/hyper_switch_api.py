@@ -27,6 +27,7 @@ class HyperSwitchCallback(object):
                                   server=cfg.CONF.host)
         self.server = rpc.get_server(target, endpoints)
         self.server.start()
+        self._plugin_property = None
         super(HyperSwitchCallback, self).__init__()
 
     @property
@@ -41,21 +42,34 @@ class HyperSwitchCallback(object):
             Return a port data from a provider IP.
         """
         provider_ip = kwargs['provider_ip']
+        host_id = kwargs['host_id']
+        evt = kwargs['evt']
+        LOG.debug('get_vif_for_provider_ip %s' % provider_ip)
         p_ports = self._plugin.get_ports(context, filters={
-            'fixed-ips': {
+            'fixed_ips': {
                 'ip_address': [provider_ip]
             }})
+        LOG.debug('provider port %s' % p_ports)
         if len(p_ports) != 1:
+            LOG.warn('%d ports for %s' % (len(p_ports), provider_ip))
             return None
 
         ports = self._plugin.get_ports(context, filters={
-            'fixed-ips': {
-                'ip_address': p_ports
+            'fixed_ips': {
+                'ip_address': [p_ports[0]['binding:profile']['hyper_ip']]
             }})
+        LOG.debug('hyper port %s' % ports)
         if len(ports) != 1:
             return None
         port = ports[0]
-        return {'instance_id': port['device_id'], 'mac': port['address']}
+        if evt == 'up':
+            self._plugin.update_port(
+                context,
+                port['id'],
+                {'port': {'binding:host_id': host_id}})
+        return {'instance_id': port['device_id'],
+                'vif_id': port['id'],
+                'mac': port['mac_address']}
 
 
 class HyperSwitchAPI(object):

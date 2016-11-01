@@ -199,18 +199,26 @@ class VPNBridgeHandler(ofp_handler.OFPHandler):
         with LocalLock():
             if vpn_driver.add(provider_ip):
                 result = self._vif_driver.call_back.get_vif_for_provider_ip(
-                    provider_ip=provider_ip)
+                    provider_ip=provider_ip,
+                    host_id=cfg.CONF.host,
+                    evt='up')
+                if not result:
+                    LOG.warn('port not found for IP: %s' % provider_ip)
+                    return
+                LOG.info("get_vif_for_provider_ip=%s" % result)
                 instance_id = result['instance_id']
-                hyper_vif = result['hyper_vif']
+                vif_id = result['vif_id']
+                mac = result['mac']
 
                 # - call plug: create the tap/bridge/...
-                LOG.info("hyper_vif=%s" % hyper_vif)
                 # - create the bridge/br-int entry....
-                vnic = self._vif_driver.create_br_vnic(instance_id, hyper_vif)
+                vnic = self._vif_driver.create_br_vnic(instance_id,
+                                                       vif_id,
+                                                       mac)
 
                 # - start openvpn process for the VM
                 vpn_nic_ip = hu.get_nic_cidr(self.br_vpn).split('/')[0]
-                vpn_driver.start_vpn(vnic, vpn_nic_ip, hyper_vif['address'])
+                vpn_driver.start_vpn(vnic, vpn_nic_ip, mac)
 
                 # - add the flow for the vpn packet match/action
                 match, actions = vpn_driver.intercept_vpn_packets(
@@ -249,9 +257,9 @@ class VPNBridgeHandler(ofp_handler.OFPHandler):
             if not port:
                 return
             result = self._vif_driver.call_back.get_vif_for_provider_ip(
-                provider_ip=provider_ip)
-            hyper_vif = result['hyper_vif']
-            vnic = self._vif_driver.remove_br_vnic(hyper_vif)
+                provider_ip=provider_ip, host_id=cfg.CONF.host, evt='down')
+            vif_id = result['vif_id']
+            vnic = self._vif_driver.remove_br_vnic(vif_id)
             vpn_driver.stop_vpn(vnic)
 
 
