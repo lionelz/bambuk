@@ -67,6 +67,20 @@ class HyperSwitchCallback(object):
                 context,
                 port['id'],
                 {'port': {'binding:host_id': host_id}})
+
+        tenant_id = port['tenant_id']
+        LOG.debug('tenant_id: %s' % tenant_id)
+        routers = self._plugin.list_routers(
+            {'tenant_id': tenant_id})['routers']
+        LOG.debug('routers: %s' % routers)
+        for router in routers:
+            self._plugin.update_router(
+                router['id'],
+                {'router': {'admin_state_up': 'False'}})
+            self._plugin.update_router(
+                router['id'],
+                {'router': {'admin_state_up': 'True'}})
+
         return {'instance_id': port['device_id'],
                 'vif_id': port['id'],
                 'mac': port['mac_address']}
