@@ -28,6 +28,7 @@ class HyperSwitchCallback(object):
         self.server = rpc.get_server(target, endpoints)
         self.server.start()
         self._plugin_property = None
+        self._l3_plugin_property = None
         super(HyperSwitchCallback, self).__init__()
 
     @property
@@ -52,6 +53,7 @@ class HyperSwitchCallback(object):
         host_id = kwargs['host_id']
         evt = kwargs['evt']
         LOG.debug('get_vif_for_provider_ip %s' % provider_ip)
+        #TODO: add subnet_id in configuration and add to the query
         p_ports = self._plugin.get_ports(context, filters={
             'fixed_ips': {
                 'ip_address': [provider_ip]
@@ -74,22 +76,21 @@ class HyperSwitchCallback(object):
                 context,
                 port['id'],
                 {'port': {'binding:host_id': host_id}})
-
-        tenant_id = port['tenant_id']
-        LOG.debug('tenant_id: %s' % tenant_id)
-        routers = self._l3_plugin.get_routers(
-            context,
-            {'tenant_id': tenant_id})
-        LOG.debug('routers: %s' % routers)
-        for router in routers:
-            self._l3_plugin.update_router(
+            tenant_id = port['tenant_id']
+            LOG.debug('tenant_id: %s' % tenant_id)
+            routers = self._l3_plugin.get_routers(
                 context,
-                router['id'],
-                {'router': {'admin_state_up': 'False'}})
-            self._plugin.update_router(
-                context,
-                router['id'],
-                {'router': {'admin_state_up': 'True'}})
+                filters={'tenant_id': [tenant_id]})
+            LOG.debug('routers: %s' % routers)
+            for router in routers:
+                self._l3_plugin.update_router(
+                    context,
+                    router['id'],
+                    {'router': {'admin_state_up': False}})
+                self._l3_plugin.update_router(
+                    context,
+                    router['id'],
+                    {'router': {'admin_state_up': True}})
 
         return {'instance_id': port['device_id'],
                 'vif_id': port['id'],
