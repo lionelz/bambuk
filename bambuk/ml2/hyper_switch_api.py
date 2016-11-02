@@ -2,12 +2,12 @@
 import oslo_messaging as messaging
 
 from neutron import manager
+from neutron.common import rpc
+from neutron.plugins.common import constants as p_const
 
 from oslo_config import cfg
 
 from oslo_log import log as logging
-
-from neutron.common import rpc
 
 LOG = logging.getLogger(__name__)
 
@@ -36,6 +36,13 @@ class HyperSwitchCallback(object):
             self._plugin_property = manager.NeutronManager.get_plugin()
         return self._plugin_property
 
+    @property
+    def _l3_plugin(self):
+        if self._l3_plugin_property is None:
+            self._l3_plugin_property = (
+                manager.NeutronManager.get_service_plugins().get(
+                    p_const.L3_ROUTER_NAT))
+        return self._l3_plugin_property
 
     def get_vif_for_provider_ip(self, context, **kwargs):
         """
@@ -70,14 +77,17 @@ class HyperSwitchCallback(object):
 
         tenant_id = port['tenant_id']
         LOG.debug('tenant_id: %s' % tenant_id)
-        routers = self._plugin.list_routers(
-            {'tenant_id': tenant_id})['routers']
+        routers = self._l3_plugin.get_routers(
+            context,
+            {'tenant_id': tenant_id})
         LOG.debug('routers: %s' % routers)
         for router in routers:
-            self._plugin.update_router(
+            self._l3_plugin.update_router(
+                context,
                 router['id'],
                 {'router': {'admin_state_up': 'False'}})
             self._plugin.update_router(
+                context,
                 router['id'],
                 {'router': {'admin_state_up': 'True'}})
 
