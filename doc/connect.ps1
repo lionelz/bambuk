@@ -39,6 +39,7 @@ If ($cur_mac -ne $mac){
    reg delete "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}\0012" /v MAC /f
    reg add    "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}\0012" /v MAC /d $mac
    netsh interface set interface "Ethernet 2" enable
+   Restart-Computer
 }
 
 #netsh interface ipv4 set address name=Ethernet static $ip $netmask
