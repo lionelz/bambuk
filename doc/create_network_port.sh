@@ -32,8 +32,8 @@ neutron port-update 2ff60c3b-5af7-4b2d-a4e9-1593f069d67d --binding:profile type=
 neutron router-create router
 
 
-neutron port-create --device-id 123460 --device-owner compute:nova private
-neutron port-update 810618bd-6712-4d82-9482-848e3769deb1 --binding:profile type=dict provider_mgnt_ip=172.31.200.52
-neutron port-create --device-id 123460 --fixed-ip subnet_id=05ec0b25-851c-467c-aa42-b38006206993,ip_address=172.31.200.52 provider_net
-neutron port-update 59fd0b73-eb50-4462-96eb-c2f0955507b4 --binding:profile type=dict hyper_ip=10.0.0.9
+neutron port-create --device-id 123500 --device-owner compute:nova private2
+neutron port-update 218c7485-e96c-4d84-9d2f-4d719763f96d --binding:profile type=dict provider_mgnt_ip=172.31.200.53
+neutron port-create --device-id 123500 --fixed-ip subnet_id=05ec0b25-851c-467c-aa42-b38006206993,ip_address=172.31.200.53 provider_net
+neutron port-update fd42a4fb-7e22-44a8-9861-37503dd4059c --binding:profile type=dict hyper_ip=10.0.1.4
 
