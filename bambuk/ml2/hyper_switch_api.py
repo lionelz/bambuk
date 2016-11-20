@@ -64,9 +64,8 @@ class HyperSwitchCallback(object):
             return None
 
         ports = self._plugin.get_ports(context, filters={
-            'fixed_ips': {
-                'ip_address': [p_ports[0]['binding:profile']['hyper_ip']]
-            }})
+            'id': [p_ports[0]['name']]
+        })
         LOG.debug('hyper port %s' % ports)
         if len(ports) != 1:
             return None
