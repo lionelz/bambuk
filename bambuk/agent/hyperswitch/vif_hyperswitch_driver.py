@@ -7,7 +7,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 
 from bambuk.agent.hyperswitch import hyperswitch_utils as hu
-from bambuk.agent.hyperswitch import vif_hypervm_driver
+from bambuk.agent.hyperswitch import vif_driver
 
 from ryu.base import app_manager
 from ryu.controller import ofp_event
@@ -49,7 +49,7 @@ cfg.CONF.register_opts(hyper_swith_agent_opts, 'hyperswitch')
 
 
 LOG = logging.getLogger(__name__)
-NIC_NAME_LEN = vif_hypervm_driver.NIC_NAME_LEN
+NIC_NAME_LEN = 14
 
 
 def get_nsize(netmask):
@@ -59,11 +59,13 @@ def get_nsize(netmask):
     return str(len(binary_str.rstrip('0')))
 
 
-class HyperSwitchVIFDriver(vif_hypervm_driver.AgentVMVIFDriver):
+class HyperSwitchVIFDriver(vif_driver.HyperVIFDriver):
     """VIF driver for hyperswitch networking."""
 
     def __init__(self, *args, **kwargs):
-        super(HyperSwitchVIFDriver, self).__init__(*args, **kwargs)
+        super(HyperSwitchVIFDriver, self).__init__()
+        self.call_back = kwargs.get('call_back')
+        self.instance_id = kwargs.get('instance_id')
         self.mgnt_nic = cfg.CONF.hyperswitch.network_mngt_interface
         self.vm_nic = cfg.CONF.hyperswitch.network_vms_interface
         if self.vm_nic == 'eth0':
@@ -84,6 +86,53 @@ class HyperSwitchVIFDriver(vif_hypervm_driver.AgentVMVIFDriver):
                         ip = line.split()[1].split(';')[0]
             self.vm_cidr = '%s/%s' % (ip, get_nsize(mask))
         self.br_vpn = cfg.CONF.hyperswitch.vpn_bridge_name
+
+    def get_br_name(self, iface_id):
+        return ("qbr" + iface_id)[:NIC_NAME_LEN]
+
+    def get_veth_pair_names(self, iface_id):
+        return (("qvm%s" % iface_id)[:NIC_NAME_LEN],
+                ("qvo%s" % iface_id)[:NIC_NAME_LEN])
+
+    def get_tap_name(self, iface_id):
+        return ("tap%s" % iface_id)[:NIC_NAME_LEN]
+
+    def get_bridge_name(self):
+        return 'br-int'
+
+    def create_br_vnic(self, instance_id, vif_id, mac):
+        br_name = self.get_br_name(vif_id)
+        br_int_veth, qbr_veth = self.get_veth_pair_names(vif_id)
+
+        # veth for br-int creation
+        if not hu.device_exists(qbr_veth):
+            hu.create_veth_pair(br_int_veth, qbr_veth)
+
+        # add in br-int the veth
+        hu.create_ovs_vif_port(self.get_bridge_name(),
+                               qbr_veth, vif_id,
+                               mac, instance_id)
+
+        tap_name = self.get_tap_name(vif_id)
+
+        # linux bridge creation
+        hu.create_linux_bridge(br_name, [br_int_veth])
+        return tap_name, br_name
+
+    def remove_br_vnic(self, vif_id):
+        v1_name, v2_name = self.get_veth_pair_names(vif_id)
+
+        # remove the br-int ports
+        hu.delete_ovs_vif_port(self.get_bridge_name(), v2_name)
+
+        # remove veths
+        hu.delete_net_dev(v1_name)
+        hu.delete_net_dev(v2_name)
+
+        # remove linux bridge
+        br_name = self.get_br_name(vif_id)
+        hu.delete_linux_bridge(br_name)
+        return self.get_tap_name(vif_id)
 
     def startup_init(self):
         # prepare the VPN bridge
@@ -117,6 +166,12 @@ class HyperSwitchVIFDriver(vif_hypervm_driver.AgentVMVIFDriver):
         self.open_flow_app = app_mgr.instantiate(VPNBridgeHandler,
                                                  vif_hypervm_driver=self)
         self.open_flow_app.start()
+
+    def plug(self, instance_id, hyper_vif):
+        pass
+
+    def unplug(self, instance_id, hyper_vif):
+        pass
 
     def cleanup(self):
         # remove the br-vpn bridge
@@ -212,13 +267,14 @@ class VPNBridgeHandler(ofp_handler.OFPHandler):
 
                 # - call plug: create the tap/bridge/...
                 # - create the bridge/br-int entry....
-                vnic = self._vif_driver.create_br_vnic(instance_id,
-                                                       vif_id,
-                                                       mac)
+                tap, br = self._vif_driver.create_br_vnic(
+                    instance_id,
+                    vif_id,
+                    mac)
 
                 # - start openvpn process for the VM
                 vpn_nic_ip = hu.get_nic_cidr(self.br_vpn).split('/')[0]
-                vpn_driver.start_vpn(vnic, vpn_nic_ip, mac)
+                vpn_driver.start_vpn(tap, br, vpn_nic_ip, mac)
 
                 # - add the flow for the vpn packet match/action
                 match, actions = vpn_driver.intercept_vpn_packets(
@@ -259,8 +315,8 @@ class VPNBridgeHandler(ofp_handler.OFPHandler):
             result = self._vif_driver.call_back.get_vif_for_provider_ip(
                 provider_ip=provider_ip, host_id=cfg.CONF.host, evt='down')
             vif_id = result['vif_id']
-            vnic = self._vif_driver.remove_br_vnic(vif_id)
-            vpn_driver.stop_vpn(vnic)
+            tap = self._vif_driver.remove_br_vnic(vif_id)
+            vpn_driver.stop_vpn(tap)
 
 
 class LocalLock(object):
@@ -308,11 +364,11 @@ class VPNDriver(object):
         pass
 
     @abc.abstractmethod
-    def start_vpn(self, vnic, vpn_nic_ip, mac):
+    def start_vpn(self, tap, br, vpn_nic_ip, mac):
         pass
 
     @abc.abstractmethod
-    def stop_vpn(self, vnic):
+    def stop_vpn(self, tap):
         pass
 
 
@@ -343,16 +399,18 @@ class OpenVPNTCP(VPNDriver):
                 [parser.OFPActionSetField(tcp_src=1194), 
                  parser.OFPActionOutput(ofproto.OFPP_NORMAL)])
 
-    def start_vpn(self, vnic, vpn_nic_ip, mac):
-        tap = "tap_%s" % vnic
-        br = "obr%s" % vnic[3:]
-        if not hu.device_exists(tap):
-            hu.execute('openvpn', '--mktun', '--dev', tap,
-                       check_exit_code=False,
-                       run_as_root=True)
+    def start_vpn(self, tap, br, vpn_nic_ip, mac):
+        if hu.device_exists(tap):
+            hu.delete_net_dev(tap)
+
+        hu.execute('openvpn', '--mktun', '--dev', tap,
+                   check_exit_code=False,
+                   run_as_root=True)
         hu.execute('ip', 'link', 'set', 'dev', tap, 'up',
                    run_as_root=True)
-        hu.create_linux_bridge(br, [vnic, tap])
+        hu.execute('brctl', 'addif', br, tap,
+                    check_exit_code=False,
+                    run_as_root=True)
 
         pid = hu.process_exist(['openvpn', tap])
         if pid:
@@ -375,14 +433,11 @@ class OpenVPNTCP(VPNDriver):
                   '--verb', '4',
                   run_as_root=True)
 
-    def stop_vpn(self, vnic):
-        tap = "tap_%s" % vnic
-        br = "obr%s" % vnic[3:]
+    def stop_vpn(self, tap):
         pid = hu.process_exist(['openvpn', tap])
         if pid:
             hu.execute('kill', str(pid), run_as_root=True)
         hu.delete_net_dev(tap)
-        hu.delete_linux_bridge(br)
 
 
 class OpenVPNUDP(OpenVPNTCP):
