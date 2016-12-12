@@ -1,5 +1,5 @@
 from neutronclient.common import extension
-from neutronclient.common import utils
+from bambuk._i18n import _
 
 
 class HyperSwitch(extension.NeutronClientExtension):
