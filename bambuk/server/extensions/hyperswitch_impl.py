@@ -65,14 +65,27 @@ class HyperSwitchPlugin(hyperswitch.HyperSwitchPluginBase):
         pass
 
     def create_hyperswitch(self, context, hyperswitch):
-        user_data = ('rabbit_userid=stackrabbit' +
-                     'rabbit_password=stack' +
-                     'rabbit_hosts=172.31.152.16' +
-                     'host=tenant-xxx-1' +
-                     'host=vm-xxx-1' +
-                     'network_mngt_interface=eth0' +
-                     'network_data_interface=eth1' +
-                     'network_vms_interface=eth2')
+        rabbit_hosts = None
+        for rabbit_host in cfg.CONF.oslo_messaging_rabbit.rabbit_hosts:
+            if rabbit_hosts:
+                rabbit_hosts = '%s, %s' % (rabbit_hosts, rabbit_host)
+            else:
+                rabbit_hosts = rabbit_host
+        #TODO: support many -1 -2 ....
+        host = ''
+        if 'vm_id' in hyperswitch:
+            host = 'vm-%s-1' % hyperswitch['vm_id']
+        else:
+            host = 'tenant-%s-1' % hyperswitch['tenant_id']
+        user_data = {
+            'rabbit_userid': cfg.CONF.oslo_messaging_rabbit.rabbit_userid,
+            'rabbit_password': cfg.CONF.oslo_messaging_rabbit.rabbit_password,
+            'rabbit_hosts': rabbit_hosts,
+            'host': host,
+            'network_mngt_interface': 'eth0',
+            'network_data_interface': 'eth1',
+            'network_vms_interface': 'eth2',
+        }
 
         net_list = []
         self._provider_impl.launch_vm(

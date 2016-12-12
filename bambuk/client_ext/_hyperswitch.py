@@ -21,11 +21,8 @@ class HyperSwitchCreate(extension.ClientExtensionCreate, HyperSwitch):
             'flavor', metavar='<FLAVOR>',
             help=_('VM network flavor: 0G, 1G or 10G.'))
         parser.add_argument(
-            'vm_id', metavar='<VM_ID>',
+            '--vm-id', dest='vm_id',
             help=_('VM ID if created for one VM.'))
-        parser.add_argument(
-            'tenant_id', metavar='<TENANT_ID>',
-            help=_('TENANT ID if created for a tenant.'))
 
     def args2body(self, parsed_args):
         body = {'hyperswitch': {'flavor': parsed_args.flavor}, }
