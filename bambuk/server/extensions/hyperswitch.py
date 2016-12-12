@@ -4,8 +4,6 @@ import abc
 from neutron.api import extensions
 from neutron.api.v2 import resource_helper
 
-from bambuk.server import extensions as bambuk_extensions
-
 RESOURCE_ATTRIBUTE_MAP = {
     'agentless_ports': {
         'port_id': {'allow_post': True, 'allow_put': True,
@@ -22,12 +20,9 @@ RESOURCE_ATTRIBUTE_MAP = {
 }
 
 
-extensions.append_api_extensions_path(bambuk_extensions.__path__)
+class Hyperswitch(extensions.ExtensionDescriptor):
 
-
-class HyperSwitch(extensions.ExtensionDescriptor):
-
-    """API extension for HyperSwitch."""
+    """API extension for Hyperswitch."""
 
     @classmethod
     def get_name(cls):
@@ -63,7 +58,7 @@ class HyperSwitch(extensions.ExtensionDescriptor):
             return {}
 
 
-class HyperSwitchPluginBase(object):
+class HyperswitchPluginBase(object):
 
     @abc.abstractmethod
     def create_agentless_port(self, context, agentless_port):
@@ -112,13 +107,16 @@ class HyperSwitchPluginBase(object):
 class ProviderDriver(object):
 
     @abc.abstractmethod
-    def create_port(self):
+    def get_hyperswitch_host_name(self,
+                                  hybrid_cloud_vm_id=None,
+                                  hybrid_cloud_tenant_id=None):
         pass
 
     @abc.abstractmethod
-    def search_port(self, provider_ip):
-        pass
-
-    @abc.abstractmethod
-    def launch_vm(self, image_id, flavor):
+    def launch_hyperswitch(self,
+                           user_data,
+                           flavor,
+                           net_list,
+                           hybrid_cloud_vm_id=None,
+                           hybrid_cloud_tenant_id=None):
         pass

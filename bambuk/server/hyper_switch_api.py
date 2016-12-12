@@ -12,7 +12,7 @@ from oslo_log import log as logging
 LOG = logging.getLogger(__name__)
 
 
-class HyperSwitchCallback(object):
+class HyperswitchCallback(object):
     """
         Processes the rpc call back.
     """
@@ -29,7 +29,7 @@ class HyperSwitchCallback(object):
         self.server.start()
         self._plugin_property = None
         self._l3_plugin_property = None
-        super(HyperSwitchCallback, self).__init__()
+        super(HyperswitchCallback, self).__init__()
 
     @property
     def _plugin(self):
@@ -96,7 +96,7 @@ class HyperSwitchCallback(object):
                 'mac': port['mac_address']}
 
 
-class HyperSwitchAPI(object):
+class HyperswitchAPI(object):
     """
         Client side of the Hyper Switch RPC API
     """
@@ -106,5 +106,5 @@ class HyperSwitchAPI(object):
                                   version='1.0',
                                   exchange='hyperswitch')
         self.client = rpc.get_client(target)
-        self.call_back = HyperSwitchCallback()
-        super(HyperSwitchAPI, self).__init__()
+        self.call_back = HyperswitchCallback()
+        super(HyperswitchAPI, self).__init__()

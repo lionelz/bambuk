@@ -37,12 +37,12 @@ OPTS_HYPERSWITCH = [
 cfg.CONF.register_opts(OPTS_HYPERSWITCH, 'HYPERSWITCH')
 
 
-class HyperSwitchPlugin(hyperswitch.HyperSwitchPluginBase):
+class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
     
     def __init__(self):
         # TODO: instantiate aws or hec driver
         self._provider_impl = aws_impl.AWSProvider()
-        self._hyper_switch_api = hyper_switch_api.HyperSwitchAPI()
+        self._hyper_switch_api = hyper_switch_api.HyperswitchAPI()
         
 
     def create_agentless_port(self, context, agentless_port):
@@ -71,12 +71,9 @@ class HyperSwitchPlugin(hyperswitch.HyperSwitchPluginBase):
                 rabbit_hosts = '%s, %s' % (rabbit_hosts, rabbit_host)
             else:
                 rabbit_hosts = rabbit_host
-        #TODO: support many -1 -2 ....
-        host = ''
-        if 'vm_id' in hyperswitch:
-            host = 'vm-%s-1' % hyperswitch['vm_id']
-        else:
-            host = 'tenant-%s-1' % hyperswitch['tenant_id']
+        host = self._provider_impl.get_hyperswitch_host_name(
+            hyperswitch.get('vm_id'),
+            hyperswitch.get('tenant_id'))
         user_data = {
             'rabbit_userid': cfg.CONF.oslo_messaging_rabbit.rabbit_userid,
             'rabbit_password': cfg.CONF.oslo_messaging_rabbit.rabbit_password,
@@ -87,13 +84,14 @@ class HyperSwitchPlugin(hyperswitch.HyperSwitchPluginBase):
             'network_vms_interface': 'eth2',
         }
 
+        #TODO: populate net_list
         net_list = []
-        self._provider_impl.launch_vm(
-            hyperswitch['flavor'],
-            hyperswitch['vm_id'],
-            hyperswitch['tenant_id'],
+        self._provider_impl.launch_hyperswitch(
             user_data,
-            net_list
+            hyperswitch['flavor'],
+            net_list,
+            hyperswitch.get('vm_id'),
+            hyperswitch.get('tenant_id'),
         )
         pass
 
