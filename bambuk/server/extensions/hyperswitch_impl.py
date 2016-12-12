@@ -45,22 +45,22 @@ class HyperSwitchPlugin(hyperswitch.HyperSwitchPluginBase):
         self._hyper_switch_api = hyper_switch_api.HyperSwitchAPI()
         
 
-    def create_agentless(self, context, port_id):
+    def create_agentless_port(self, context, agentless_port):
         # TODO:
         #   - create a provider port with the name port_id
         #   - 
         self._provider_impl.create_port()
         pass
 
-    def get_agentless(self, context, port_id, fields=None):
+    def get_agentless_port(self, context, agentless_port_id, fields=None):
         pass
 
-    def delete_agentless(self, context, port_id):
+    def delete_agentless_port(self, context, agentless_port_id):
         pass
 
-    def get_agentlesss(self, context, filters=None, fields=None,
-                       sorts=None, limit=None, marker=None,
-                       page_reverse=False):
+    def get_agentless_ports(self, context, filters=None, fields=None,
+                            sorts=None, limit=None, marker=None,
+                            page_reverse=False):
         # TODO: filter by port_id and provider_ip
         pass
 

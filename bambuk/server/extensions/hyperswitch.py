@@ -7,11 +7,11 @@ from neutron.api.v2 import resource_helper
 from bambuk.server import extensions as bambuk_extensions
 
 RESOURCE_ATTRIBUTE_MAP = {
-    'agentless': {
+    'agentless_ports': {
         'port_id': {'allow_post': True, 'allow_put': True,
                     'is_visible': True},
     },
-    'hyperswitch': {
+    'hyperswitchs': {
         'flavor': {'allow_post': True, 'allow_put': False,
                           'is_visible': True},
         'vm_id': {'allow_post': True, 'allow_put': False,
@@ -66,38 +66,25 @@ class HyperSwitch(extensions.ExtensionDescriptor):
 class HyperSwitchPluginBase(object):
 
     @abc.abstractmethod
-    def create_agentless(self, context, port_id):
+    def create_agentless_port(self, context, agentless_port):
         pass
 
     @abc.abstractmethod
-    def get_agentless(self, context, port_id, fields=None):
+    def get_agentless_port(self, context, agentless_port_id, fields=None):
         pass
 
     @abc.abstractmethod
-    def delete_agentless(self, context, port_id):
+    def delete_agentless_port(self, context, agentless_port_id):
         pass
 
     @abc.abstractmethod
-    def get_agentlesss(self, context, filters=None, fields=None,
-                       sorts=None, limit=None, marker=None,
-                       page_reverse=False):
+    def get_agentless_ports(self, context, filters=None, fields=None,
+                            sorts=None, limit=None, marker=None,
+                            page_reverse=False):
         pass
 
     @abc.abstractmethod
     def create_hyperswitch(self, context, hyperswitch):
-#user_data,
-
-# rabbit_userid=stackrabbit
-# rabbit_password=stack
-# rabbit_hosts=172.31.152.16
-# host=tenant-xxx-1
-# host=vm-xxx-1
-# network_mngt_interface=eth0
-# network_data_interface=eth1
-# network_vms_interface=eth2
-
-#net_list,
-
         pass
 
     @abc.abstractmethod
