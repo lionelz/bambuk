@@ -36,12 +36,9 @@ hyper_swith_agent_opts = [
     cfg.StrOpt('vpn_bridge_name',
                default='br-vpn',
                help='The VPN bridge name'),
-    cfg.StrOpt('eth0_cidr',
-               help='eth0 cidr'),
-    cfg.StrOpt('eth1_cidr',
-               help='eth1 cidr'),
-    cfg.StrOpt('eth2_cidr',
-               help='eth2 cidr'),
+    cfg.IntOpt('idle_timeout',
+               default=90,
+               help='The flow iddle timeout in seconds'),
 ]
 
 
@@ -68,23 +65,19 @@ class HyperSwitchVIFDriver(vif_driver.HyperVIFDriver):
         self.instance_id = kwargs.get('instance_id')
         self.mgnt_nic = cfg.CONF.hyperswitch.network_mngt_interface
         self.vm_nic = cfg.CONF.hyperswitch.network_vms_interface
-        if self.vm_nic == 'eth0':
-            self.vm_cidr = cfg.CONF.hyperswitch.eth0_cidr
-        if self.vm_nic == 'eth1':
-            self.vm_cidr = cfg.CONF.hyperswitch.eth1_cidr
-        if self.vm_nic == 'eth2':
-            self.vm_cidr = cfg.CONF.hyperswitch.eth2_cidr
-        if not self.vm_cidr or self.vm_cidr.split('/')[0] == '':
-            lease_file = '/var/lib/dhcp/dhclient.%s.leases' % self.vm_nic
-            mask = None
-            ip = None
-            with open(lease_file, 'r') as f:
-                for line in f:
-                    if 'subnet-mask' in line:
-                        mask = line.split()[2].split(';')[0]
-                    if 'fixed-address' in line:
-                        ip = line.split()[1].split(';')[0]
-            self.vm_cidr = '%s/%s' % (ip, get_nsize(mask))
+        self.idle_timeout = cfg.CONF.hyperswitch.idle_timeout
+        # retrieve the vms nic cidr 
+        lease_file = '/var/lib/dhcp/dhclient.%s.leases' % self.vm_nic
+        mask = None
+        ip = None
+        with open(lease_file, 'r') as f:
+            for line in f:
+                if 'subnet-mask' in line:
+                    mask = line.split()[2].split(';')[0]
+                if 'fixed-address' in line:
+                    ip = line.split()[1].split(';')[0]
+        self.vm_cidr = '%s/%s' % (ip, get_nsize(mask))
+
         self.br_vpn = cfg.CONF.hyperswitch.vpn_bridge_name
 
     def get_br_name(self, iface_id):
@@ -279,11 +272,10 @@ class VPNBridgeHandler(ofp_handler.OFPHandler):
                 # - add the flow for the vpn packet match/action
                 match, actions = vpn_driver.intercept_vpn_packets(
                     parser, ofproto, provider_ip)
-                # TODO: set to 20 mn
-                # - idle_timeout: 30 s for test
+
                 self.mod_flow(datapath=datapath,
                               cookie=msg.cookie,
-                              idle_timeout=30,
+                              idle_timeout=self.idle_timeout,
                               match=match,
                               actions=actions,
                               priority=100)
@@ -291,7 +283,7 @@ class VPNBridgeHandler(ofp_handler.OFPHandler):
                     parser, ofproto, provider_ip)
                 self.mod_flow(datapath=datapath,
                               cookie=msg.cookie,
-                              idle_timeout=30,
+                              idle_timeout=self.idle_timeout,
                               match=match,
                               actions=actions,
                               priority=100)
