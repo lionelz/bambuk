@@ -3,6 +3,8 @@ from bambuk.server import hyper_switch_api
 from bambuk.server.extensions import hyperswitch
 from bambuk.server.extensions.aws import aws_impl
 
+from neutron import manager
+
 from oslo_config import cfg
 
 
@@ -38,12 +40,26 @@ cfg.CONF.register_opts(OPTS_HYPERSWITCH, 'HYPERSWITCH')
 
 
 class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
+
+    supported_extension_aliases = ["hyperswitch",
+                                   "agentless_port"]
     
     def __init__(self):
         # TODO: instantiate aws or hec driver
         self._provider_impl = aws_impl.AWSProvider()
         self._hyper_switch_api = hyper_switch_api.HyperswitchAPI()
         
+    @property
+    def _core_plugin(self):
+        return manager.NeutronManager.get_plugin()
+
+    def get_plugin_type(self):
+        """Get type of the plugin."""
+        return "hyperswitch"
+
+    def get_plugin_description(self):
+        """Get description of the plugin."""
+        return "Hyperswitch Management Plugin"
 
     def create_agentless_port(self, context, agentless_port):
         # TODO:
