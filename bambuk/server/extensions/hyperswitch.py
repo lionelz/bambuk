@@ -146,7 +146,11 @@ class ProviderDriver(object):
 
     @abc.abstractmethod
     def get_hyperswitchs(self,
-                         hyperswitch_ids,
-                         vm_ids,
-                         tenant_ids):
+                         hyperswitch_ids=None,
+                         vm_ids=None,
+                         tenant_ids=None):
         return []
+
+    @abc.abstractmethod
+    def delete_hyperswitch(self, hyperswitch_id):
+        pass

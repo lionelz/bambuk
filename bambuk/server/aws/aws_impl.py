@@ -151,7 +151,20 @@ class AWSProvider(hyperswitch.ProviderDriver):
         return host
 
     def _aws_instance_to_dict(self, aws_instance):
+        host = None
+        vm_id = None
+        tenant_id = None
+        for tag in aws_instance.tags:
+            if tag['Key'] == 'Name':
+                host = tag['Value']
+            if tag['Key'] == 'hybrid_cloud_vm_id':
+                vm_id = tag['Value']
+            if tag['Key'] == 'hybrid_cloud_tenant_id':
+                tenant_id = tag['Value']
         res = {
+            'id': host,
+            'vm_id': vm_id,
+            'tenant_id': tenant_id,
             'instance_id': aws_instance.id,
             'instance_type': aws_instance.instance_type,
             'private_ip':  aws_instance.private_ip_address,
@@ -211,28 +224,21 @@ class AWSProvider(hyperswitch.ProviderDriver):
         host = self.get_hyperswitch_host_name(
             hybrid_cloud_vm_id,
             hybrid_cloud_tenant_id)
-        if hybrid_cloud_vm_id:
-            self.ec2.create_tags(Resources=[instance_id],
-                                 Tags=[{'Key': 'hybrid_cloud_vm_id',
-                                        'Value': hybrid_cloud_vm_id},
-                                       {'Key': 'hybrid_cloud_type',
-                                        'Value': 'hyperswitch'},
-                                       {'Key': 'Name',
-                                        'Value': host}])
-        if hybrid_cloud_tenant_id:
-            self.ec2.create_tags(Resources=[instance_id],
-                                 Tags=[{'Key': 'hybrid_cloud_tenant_id',
-                                        'Value': hybrid_cloud_tenant_id},
-                                       {'Key': 'hybrid_cloud_type',
-                                        'Value': 'hyperswitch'},
-                                       {'Key': 'Name',
-                                        'Value': host}])
+        self.ec2.create_tags(Resources=[instance_id],
+                             Tags=[{'Key': 'hybrid_cloud_tenant_id',
+                                    'Value': hybrid_cloud_tenant_id},
+                                   {'Key': 'hybrid_cloud_vm_id',
+                                    'Value': hybrid_cloud_vm_id},
+                                   {'Key': 'hybrid_cloud_type',
+                                    'Value': 'hyperswitch'},
+                                   {'Key': 'Name',
+                                    'Value': host}])
         return self._aws_instance_to_dict(aws_instance)
 
     def get_hyperswitchs(self,
-                         hyperswitch_ids,
-                         vm_ids,
-                         tenant_ids):
+                         hyperswitch_ids=None,
+                         vm_ids=None,
+                         tenant_ids=None):
         res = []
         if hyperswitch_ids:
             for hyperswitch_id in hyperswitch_ids:
@@ -256,3 +262,12 @@ class AWSProvider(hyperswitch.ProviderDriver):
             aws_instances = self._find_vms('hybrid_cloud_type', 'hyperswitch')
             self._add_aws_instances_to_list(aws_instances, res)
         return res
+
+    def delete_hyperswitch(self, hyperswitch_id):
+        aws_instances = self._find_vms(
+            'Name',
+            hyperswitch_id)
+        instances_id =[aws_instance.id for aws_instance in aws_instances]
+        self.ec2.terminate_instances(
+            InstanceIds=instances_id
+        )

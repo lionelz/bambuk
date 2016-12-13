@@ -99,13 +99,14 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             hyperswitch.get('vm_id'),
             hyperswitch.get('tenant_id'),
         )
-        hs['id'] = host
-        hs['vm_id'] = hyperswitch.get('vm_id')
-        hs['tenant_id'] = hyperswitch.get('tenant_id')
         return hs
 
     def get_hyperswitch(self, context, hyperswitch_id, fields=None):
-        pass
+        hs = self._provider_impl.get_hyperswitchs(
+            [hyperswitch_id]
+        )
+        if len(hs) > 0:
+            return hs[0]
 
     def delete_hyperswitch(self, context, hyperswitch_id):
         pass
@@ -115,7 +116,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
                          page_reverse=False):
         if not filters:
             filters = {}
-        self._provider_impl.get_hyperswitchs(
+        return self._provider_impl.get_hyperswitchs(
             filters.get('id'),
             filters.get('tenant_id'),
             filters.get('vm_id')
