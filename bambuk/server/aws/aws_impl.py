@@ -215,12 +215,16 @@ class AWSProvider(hyperswitch.ProviderDriver):
             self.ec2.create_tags(Resources=[instance_id],
                                  Tags=[{'Key': 'hybrid_cloud_vm_id',
                                         'Value': hybrid_cloud_vm_id},
+                                       {'Key': 'hybrid_cloud_type',
+                                        'Value': 'hyperswitch'},
                                        {'Key': 'Name',
                                         'Value': host}])
         if hybrid_cloud_tenant_id:
             self.ec2.create_tags(Resources=[instance_id],
                                  Tags=[{'Key': 'hybrid_cloud_tenant_id',
                                         'Value': hybrid_cloud_tenant_id},
+                                       {'Key': 'hybrid_cloud_type',
+                                        'Value': 'hyperswitch'},
                                        {'Key': 'Name',
                                         'Value': host}])
         return self._aws_instance_to_dict(aws_instance)
