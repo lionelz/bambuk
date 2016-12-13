@@ -10,8 +10,7 @@ from oslo_config import cfg
 
 class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
 
-    supported_extension_aliases = ["hyperswitch",
-                                   "agentless_port"]
+    supported_extension_aliases = ["hyperswitch"]
     
     def __init__(self):
         # TODO: instantiate aws or hec driver
