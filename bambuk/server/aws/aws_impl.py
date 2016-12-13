@@ -218,7 +218,6 @@ class AWSProvider(hyperswitch.ProviderDriver):
             InstanceInitiatedShutdownBehavior='stop',
             NetworkInterfaces=net_interfaces,
         )[0]
-        aws_instance.wait_until_running()
 
         host = self.get_hyperswitch_host_name(
             hybrid_cloud_vm_id,
@@ -234,6 +233,9 @@ class AWSProvider(hyperswitch.ProviderDriver):
                          'Value': hybrid_cloud_vm_id})
         self.ec2.create_tags(Resources=[aws_instance.id],
                              Tags=tags)
+
+        aws_instance.wait_until_running()
+
         return self._aws_instance_to_dict(aws_instance)
 
     def get_hyperswitchs(self,
@@ -268,9 +270,8 @@ class AWSProvider(hyperswitch.ProviderDriver):
         aws_instances = self._find_vms(
             'Name',
             hyperswitch_id)
-        instances_id =[
-            aws_instance.instanceId for aws_instance in aws_instances
-        ]
-        self.ec2.terminate_instances(
-            InstanceIds=instances_id
-        )
+        for aws_instance in aws_instances:
+            aws_instance.stop()
+            aws_instance.wait_until_stopped()
+            aws_instance.terminate()
+            aws_instance.wait_until_terminated()
