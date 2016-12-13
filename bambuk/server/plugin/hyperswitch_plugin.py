@@ -6,6 +6,11 @@ from bambuk.server.extensions import hyperswitch
 
 from neutron import manager
 
+from oslo_log import log as logging
+
+
+LOG = logging.getLogger(__name__)
+
 
 class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
 
@@ -48,6 +53,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         pass
 
     def create_hyperswitch(self, context, hyperswitch):
+        hyperswitch = hyperswitch['hyperswitch']
         rabbit_hosts = None
         for rabbit_host in config.get_rabbit_hosts():
             if rabbit_hosts:

@@ -13,7 +13,7 @@ RESOURCE_ATTRIBUTE_MAP = {
         'flavor': {'allow_post': True, 'allow_put': False,
                           'is_visible': True},
         'vm_id': {'allow_post': True, 'allow_put': False,
-                  'is_visible': True, 'required_by_policy': False},
+                  'is_visible': True, 'default': None},
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'is_visible': True},
     },

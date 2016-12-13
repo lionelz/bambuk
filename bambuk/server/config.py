@@ -63,4 +63,4 @@ def get_aws_region_name():
 
 
 def get_aws_flavor_map():
-    return cfg.CONF.hyperswitch.aws_flavor_map,
+    return cfg.CONF.hyperswitch.aws_flavor_map
