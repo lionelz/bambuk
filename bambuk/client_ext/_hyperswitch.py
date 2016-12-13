@@ -37,7 +37,7 @@ class HyperSwitchList(extension.ClientExtensionList, HyperSwitch):
     """List hyperswitch that belongs to a given tenant."""
 
     shell_command = 'hyperswitch-list'
-    list_columns = ['vm_id', 'tenant_id']
+    list_columns = ['id', 'vm_id', 'tenant_id', 'flavor']
     pagination_support = True
     sorting_support = True
 

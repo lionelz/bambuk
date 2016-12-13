@@ -92,14 +92,17 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
                     'security_group': config.get_data_security_group()
                 }
             )
-        self._provider_impl.launch_hyperswitch(
+        hs = self._provider_impl.launch_hyperswitch(
             user_data,
             hyperswitch['flavor'],
             net_list,
             hyperswitch.get('vm_id'),
             hyperswitch.get('tenant_id'),
         )
-        pass
+        hs['id'] = host
+        hs['vm_id'] = hyperswitch.get('vm_id')
+        hs['tenant_id'] = hyperswitch.get('tenant_id')
+        return hs
 
     def get_hyperswitch(self, context, hyperswitch_id, fields=None):
         pass
@@ -110,5 +113,11 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
     def get_hyperswitchs(self, context, filters=None, fields=None,
                          sorts=None, limit=None, marker=None,
                          page_reverse=False):
-        pass
+        if not filters:
+            filters = {}
+        self._provider_impl.get_hyperswitchs(
+            filters.get('id'),
+            filters.get('tenant_id'),
+            filters.get('vm_id')
+        )
 

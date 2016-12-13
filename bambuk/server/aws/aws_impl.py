@@ -149,7 +149,27 @@ class AWSProvider(hyperswitch.ProviderDriver):
             size = sum(1 for _ in vms)
             host = 'tenant-%s-%d' % (hybrid_cloud_tenant_id, size)
         return host
-        
+
+    def _aws_instance_to_dict(self, aws_instance):
+        res = {
+            'instance_id': aws_instance.id,
+            'instance_type': aws_instance.instance_type,
+            'private_ip':  aws_instance.private_ip_address,
+        }
+        i = 0
+        for net_inf in aws_instance.network_interfaces_attribute:
+            if i == 0:
+                res['mgnt_ip'] = net_inf['PrivateIpAddress']
+            if i == 1:
+                res['data_ip'] = net_inf['PrivateIpAddress']
+            if i > 1:
+                res['vms_ip_%s' % (i - 2)] = net_inf['PrivateIpAddress']
+            i = i + 1
+        return res
+
+    def _add_aws_instances_to_list(self, aws_instances, d):
+        for aws_instance in aws_instances:
+            d.append(self._aws_instance_to_dict(aws_instance))
 
     def launch_hyperswitch(self,
                            user_data,
@@ -159,11 +179,11 @@ class AWSProvider(hyperswitch.ProviderDriver):
                            hybrid_cloud_tenant_id=None):
         # find the image according to a tag hybrid_cloud_image=hyperswitch
         image_id = self._find_image_id('hybrid_cloud_image', 'hyperswitch')
-        image_type = config.get_aws_hs_flavor_map()[flavor]
+        instance_type = config.get_aws_hs_flavor_map()[flavor]
         net_interfaces = []
         i = 0
         for net in net_list:
-            if i < MAX_NIC[image_type]:
+            if i < MAX_NIC[instance_type]:
                 net_interfaces.append(
                     {
                         'DeviceIndex': i,
@@ -181,7 +201,7 @@ class AWSProvider(hyperswitch.ProviderDriver):
             MinCount=1,
             MaxCount=1,
             UserData=user_metadata,
-            InstanceType=image_type,
+            InstanceType=instance_type,
             InstanceInitiatedShutdownBehavior='stop',
             NetworkInterfaces=net_interfaces,
         )[0]
@@ -203,3 +223,32 @@ class AWSProvider(hyperswitch.ProviderDriver):
                                         'Value': hybrid_cloud_tenant_id},
                                        {'Key': 'Name',
                                         'Value': host}])
+        return self._aws_instance_to_dict(aws_instance)
+
+    def get_hyperswitchs(self,
+                         hyperswitch_ids,
+                         vm_ids,
+                         tenant_ids):
+        res = []
+        if hyperswitch_ids:
+            for hyperswitch_id in hyperswitch_ids:
+                aws_instances = self._find_vms(
+                    'Name',
+                    hyperswitch_id)
+                self._add_aws_instances_to_list(aws_instances, res)
+        if vm_ids:
+            for vm_id in vm_ids:
+                aws_instances = self._find_vms(
+                    'hybrid_cloud_vm_id',
+                    vm_id)
+                self._add_aws_instances_to_list(aws_instances, res)
+        if tenant_ids:
+            for tenant_id in tenant_ids:
+                aws_instances = self._find_vms(
+                    'hybrid_cloud_tenant_id',
+                    tenant_id)
+                self._add_aws_instances_to_list(aws_instances, res)
+        if not hyperswitch_ids and not vm_ids and not tenant_ids:
+            aws_instances = self._find_vms('hybrid_cloud_type', 'hyperswitch')
+            self._add_aws_instances_to_list(aws_instances, res)
+        return res

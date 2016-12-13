@@ -124,3 +124,10 @@ class ProviderDriver(object):
                            hybrid_cloud_vm_id=None,
                            hybrid_cloud_tenant_id=None):
         pass
+
+    @abc.abstractmethod
+    def get_hyperswitchs(self,
+                         hyperswitch_ids,
+                         vm_ids,
+                         tenant_ids):
+        return []
