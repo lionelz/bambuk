@@ -1,7 +1,7 @@
 
 from boto3 import session
 
-from server.extensions import hyperswitch
+from bambuk.server.extensions import hyperswitch
 
 from oslo_config import cfg
 

@@ -4,6 +4,41 @@ import abc
 from neutron.api import extensions
 from neutron.api.v2 import resource_helper
 
+from oslo_config import cfg
+
+
+OPTS_HYPERSWITCH = [
+    cfg.StrOpt('provider', default='aws',
+               help=_("Provider: aws|hec.")),
+    cfg.StrOpt('level', default='tenant',
+               help=_("Level: tenant|vm.")),
+    cfg.StrOpt('mgnt_network',
+               help=_("Management network id or name.")),
+    cfg.StrOpt('mgnt_security_group',
+               help=_("Management network security group id or name.")),
+    cfg.StrOpt('data_network',
+               help=_("Data network id or name.")),
+    cfg.StrOpt('data_security_group',
+               help=_("Data network security group id or name.")),
+    cfg.ListOpt('vms_cidr', default=['172.31.300.0/24', '172.31.310.0/24'],
+               help=_("Data network security group id or name.")),
+    cfg.StrOpt('default_flavor', default='1G',
+               help=_("Default flavor for hyperswitch creation.")),
+    cfg.StrOpt('aws_access_key_id',
+               help=_("AWS Access Key Id.")),
+    cfg.StrOpt('aws_secret_access_key',
+               help=_("AWS Secret Access Key.")),
+    cfg.DictOpt('aws_flavor_map',
+                default={'0G': 't2.micro',
+                         '1G': 'c4.large',
+                         '10G': 'c4.xlarge'},
+                help=_("AWS flavor Map")),
+]
+
+
+cfg.CONF.register_opts(OPTS_HYPERSWITCH, 'hyperswitch')
+
+
 RESOURCE_ATTRIBUTE_MAP = {
     'agentless_ports': {
         'port_id': {'allow_post': True, 'allow_put': True,
