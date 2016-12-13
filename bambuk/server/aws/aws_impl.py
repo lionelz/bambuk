@@ -91,7 +91,7 @@ class AWSProvider(hyperswitch.ProviderDriver):
         self.ec2_resource = self.session.resource('ec2')
 
     def _find_subnets(self, vpc, tag_name, tag_value):
-        return self.ec2_resource.instances.filter(Filters=[{
+        return vpc.subnets.filter(Filters=[{
             'Name': 'tag:%s' % tag_name,
             'Values': ['%s' % tag_value]}])
 
@@ -110,20 +110,26 @@ class AWSProvider(hyperswitch.ProviderDriver):
     def get_vms_subnet(self):
         vpc = self.ec2_resource.Vpc(config.get_aws_vpc())
         subnets_id = []
+        tag_name = 'Name'
         for cidr in config.get_vms_cidr():
-            subnets = self.check_vms_subnet(
-                vpc,
-                'agentless_vms_cidr',
-                '%s' % cidr
-            )
+            tag_val = 'vms_%s' % cidr
+            subnets = self._find_subnets(vpc, tag_name, tag_val)
             subnet_id = None
             for subnet in subnets:
                 subnet_id = subnet.id
             if not subnet_id:
-                subnet_id = self.ec2.create_subnet(
+                subnet = self.ec2.create_subnet(
                     VpcId=config.get_aws_vpc(),
                     CidrBlock=cidr
-                ).id
+                )
+                subnet_id = subnet['Subnet']['SubnetId']
+                self.ec2.create_tags(
+                    Resources=[subnet_id],
+                    Tags=[{
+                        'Key': tag_name,
+                        'Value': tag_val
+                    }]
+                )
             subnets_id.append(subnet_id)
         return subnets_id
 
@@ -153,7 +159,7 @@ class AWSProvider(hyperswitch.ProviderDriver):
                            hybrid_cloud_tenant_id=None):
         # find the image according to a tag hybrid_cloud_image=hyperswitch
         image_id = self._find_image_id('hybrid_cloud_image', 'hyperswitch')
-        image_type = config.get_aws_flavor_map()[flavor]
+        image_type = config.get_aws_hs_flavor_map()[flavor]
         net_interfaces = []
         i = 0
         for net in net_list:
@@ -166,12 +172,15 @@ class AWSProvider(hyperswitch.ProviderDriver):
                     }
                 )
                 i = i + 1 
+        user_metadata = ''
+        for k, v in user_data.iteritems():
+            user_metadata = '%s\n%s=%s' % (user_metadata, k, v)
         # create the instance
         aws_instance = self.ec2_resource.create_instances(
             ImageId=image_id,
             MinCount=1,
             MaxCount=1,
-            UserData=user_data,
+            UserData=user_metadata,
             InstanceType=image_type,
             InstanceInitiatedShutdownBehavior='stop',
             NetworkInterfaces=net_interfaces,
@@ -179,12 +188,18 @@ class AWSProvider(hyperswitch.ProviderDriver):
         aws_instance.wait_until_running()
 
         instance_id = aws_instance.id
-
+        host = self.get_hyperswitch_host_name(
+            hybrid_cloud_vm_id,
+            hybrid_cloud_tenant_id)
         if hybrid_cloud_vm_id:
             self.ec2.create_tags(Resources=[instance_id],
                                  Tags=[{'Key': 'hybrid_cloud_vm_id',
-                                        'Value': hybrid_cloud_vm_id}])
+                                        'Value': hybrid_cloud_vm_id},
+                                       {'Key': 'Name',
+                                        'Value': host}])
         if hybrid_cloud_tenant_id:
             self.ec2.create_tags(Resources=[instance_id],
                                  Tags=[{'Key': 'hybrid_cloud_tenant_id',
-                                        'Value': hybrid_cloud_tenant_id}])
+                                        'Value': hybrid_cloud_tenant_id},
+                                       {'Key': 'Name',
+                                        'Value': host}])

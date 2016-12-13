@@ -23,11 +23,14 @@ OPTS_HYPERSWITCH = [
                help=_("AWS Secret Access Key.")),
     cfg.StrOpt('aws_region_name',
                help=_("AWS Region Name.")),
-    cfg.DictOpt('aws_flavor_map',
+    cfg.StrOpt('aws_hs_default_flavor',
+               default='1G',
+                help=_("AWS HyperSwitch default flavor")),
+    cfg.DictOpt('aws_hs_flavor_map',
                 default={'0G': 't2.micro',
                          '1G': 'c4.large',
                          '10G': 'c4.xlarge'},
-                help=_("AWS flavor Map")),
+                help=_("AWS HyperSwitch flavor Map")),
     cfg.StrOpt('aws_vpc',
                help=_("AWS VPC id.")),
 ]
@@ -96,8 +99,12 @@ def get_aws_region_name():
     return cfg.CONF.hyperswitch.aws_region_name
 
 
-def get_aws_flavor_map():
-    return cfg.CONF.hyperswitch.aws_flavor_map
+def get_aws_hs_default_flavor():
+    return cfg.CONF.hyperswitch.aws_hs_default_flavor
+
+
+def get_aws_hs_flavor_map():
+    return cfg.CONF.hyperswitch.aws_hs_flavor_map
 
 
 def get_aws_vpc():
