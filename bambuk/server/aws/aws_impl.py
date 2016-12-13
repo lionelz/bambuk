@@ -220,19 +220,20 @@ class AWSProvider(hyperswitch.ProviderDriver):
         )[0]
         aws_instance.wait_until_running()
 
-        instance_id = aws_instance.id
         host = self.get_hyperswitch_host_name(
             hybrid_cloud_vm_id,
             hybrid_cloud_tenant_id)
-        self.ec2.create_tags(Resources=[instance_id],
-                             Tags=[{'Key': 'hybrid_cloud_tenant_id',
-                                    'Value': hybrid_cloud_tenant_id},
-                                   {'Key': 'hybrid_cloud_vm_id',
-                                    'Value': hybrid_cloud_vm_id},
-                                   {'Key': 'hybrid_cloud_type',
-                                    'Value': 'hyperswitch'},
-                                   {'Key': 'Name',
-                                    'Value': host}])
+        tags = [{'Key': 'hybrid_cloud_tenant_id',
+                 'Value': hybrid_cloud_tenant_id},
+                {'Key': 'hybrid_cloud_type',
+                 'Value': 'hyperswitch'},
+                {'Key': 'Name',
+                 'Value': host}]
+        if hybrid_cloud_vm_id:
+            tags.append({'Key': 'hybrid_cloud_vm_id',
+                         'Value': hybrid_cloud_vm_id})
+        self.ec2.create_tags(Resources=[aws_instance.id],
+                             Tags=tags)
         return self._aws_instance_to_dict(aws_instance)
 
     def get_hyperswitchs(self,
@@ -267,7 +268,9 @@ class AWSProvider(hyperswitch.ProviderDriver):
         aws_instances = self._find_vms(
             'Name',
             hyperswitch_id)
-        instances_id =[aws_instance.id for aws_instance in aws_instances]
+        instances_id =[
+            aws_instance.instanceId for aws_instance in aws_instances
+        ]
         self.ec2.terminate_instances(
             InstanceIds=instances_id
         )
