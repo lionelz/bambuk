@@ -107,6 +107,10 @@ class HyperswitchPluginBase(object):
 class ProviderDriver(object):
 
     @abc.abstractmethod
+    def get_vms_subnet(self):
+        return []
+
+    @abc.abstractmethod
     def get_hyperswitch_host_name(self,
                                   hybrid_cloud_vm_id=None,
                                   hybrid_cloud_tenant_id=None):

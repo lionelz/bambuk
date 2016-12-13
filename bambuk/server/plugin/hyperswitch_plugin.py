@@ -17,9 +17,12 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
     supported_extension_aliases = ["hyperswitch"]
     
     def __init__(self):
-        # TODO: instantiate aws or hec driver
-        self._provider_impl = aws_impl.AWSProvider()
+        if config.get_provider() == 'aws':
+            self._provider_impl = aws_impl.AWSProvider()
+        if config.get_provider() == 'hec':
+            self._provider_impl = None
         self._hyper_switch_api = hyper_switch_api.HyperswitchAPI()
+        self._vms_subnets = self._provider_impl.get_vms_subnet()
         
     @property
     def _core_plugin(self):
@@ -73,8 +76,22 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             'network_vms_interface': 'eth2',
         }
 
-        #TODO: populate net_list
-        net_list = []
+        net_list = [
+            {
+                'name': config.get_mgnt_network(),
+                'security_group': config.get_mgnt_security_group()},
+            {
+                'name': config.get_data_network(),
+                'security_group': config.get_data_security_group()},
+        ]
+        # TODO: create and use security groups for HSs and VMs
+        for vm_subnet in self._vms_subnets:
+            net_list.append(
+                {
+                    'name': vm_subnet,
+                    'security_group': config.get_data_security_group()
+                }
+            )
         self._provider_impl.launch_hyperswitch(
             user_data,
             hyperswitch['flavor'],

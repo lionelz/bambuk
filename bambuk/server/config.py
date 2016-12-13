@@ -28,6 +28,8 @@ OPTS_HYPERSWITCH = [
                          '1G': 'c4.large',
                          '10G': 'c4.xlarge'},
                 help=_("AWS flavor Map")),
+    cfg.StrOpt('aws_vpc',
+               help=_("AWS VPC id.")),
 ]
 
 
@@ -50,6 +52,38 @@ def get_rabbit_password():
     return cfg.CONF.oslo_messaging_rabbit.rabbit_password
 
 
+def get_provider():
+    return cfg.CONF.hyperswitch.provider
+
+
+def get_level():
+    return cfg.CONF.hyperswitch.level
+
+
+def get_mgnt_network():
+    return cfg.CONF.hyperswitch.mgnt_network
+
+
+def get_mgnt_security_group():
+    return cfg.CONF.hyperswitch.mgnt_security_group
+
+
+def get_data_network():
+    return cfg.CONF.hyperswitch.data_network
+
+
+def get_data_security_group():
+    return cfg.CONF.hyperswitch.data_security_group
+
+
+def get_vms_cidr():
+    return cfg.CONF.hyperswitch.vms_cidr
+
+
+def get_default_flavor():
+    return cfg.CONF.hyperswitch.default_flavor
+
+
 def get_aws_access_key_id():
     return cfg.CONF.hyperswitch.aws_access_key_id
 
@@ -64,3 +98,7 @@ def get_aws_region_name():
 
 def get_aws_flavor_map():
     return cfg.CONF.hyperswitch.aws_flavor_map
+
+
+def get_aws_vpc():
+    return cfg.CONF.hyperswitch.aws_vpc
