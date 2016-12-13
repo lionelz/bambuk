@@ -1,11 +1,10 @@
 
+from bambuk.server import config
 from bambuk.server import hyper_switch_api
+from bambuk.server.aws import aws_impl
 from bambuk.server.extensions import hyperswitch
-from bambuk.server.extensions.aws import aws_impl
 
 from neutron import manager
-
-from oslo_config import cfg
 
 
 class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
@@ -50,7 +49,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
 
     def create_hyperswitch(self, context, hyperswitch):
         rabbit_hosts = None
-        for rabbit_host in cfg.CONF.oslo_messaging_rabbit.rabbit_hosts:
+        for rabbit_host in config.get_rabbit_hosts():
             if rabbit_hosts:
                 rabbit_hosts = '%s, %s' % (rabbit_hosts, rabbit_host)
             else:
@@ -59,8 +58,8 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             hyperswitch.get('vm_id'),
             hyperswitch.get('tenant_id'))
         user_data = {
-            'rabbit_userid': cfg.CONF.oslo_messaging_rabbit.rabbit_userid,
-            'rabbit_password': cfg.CONF.oslo_messaging_rabbit.rabbit_password,
+            'rabbit_userid': config.get_rabbit_userid(),
+            'rabbit_password': config.get_rabbit_password(),
             'rabbit_hosts': rabbit_hosts,
             'host': host,
             'network_mngt_interface': 'eth0',

@@ -1,17 +1,16 @@
 
 from boto3 import session
 
+from bambuk.server import config
 from bambuk.server.extensions import hyperswitch
-
-from oslo_config import cfg
 
 
 class AWSProvider(hyperswitch.ProviderDriver):
     
     def __init__(self):
-        self._access_key_id = cfg.CONF.hyperswitch.aws_access_key_id
-        self._secret_access_key = cfg.CONF.hyperswitch.aws_secret_access_key
-        self._region_name = cfg.CONF.hyperswitch.aws_region_name
+        self._access_key_id = config.get_aws_access_key_id()
+        self._secret_access_key = config.get_aws_secret_access_key()
+        self._region_name = config.get_aws_region_name()
         self.session = session.Session(
             aws_access_key_id=self._access_key_id,
             aws_secret_access_key=self._secret_access_key,
@@ -75,7 +74,7 @@ class AWSProvider(hyperswitch.ProviderDriver):
             MinCount=1,
             MaxCount=1,
             UserData=user_data,
-            InstanceType=cfg.CONF.hyperswitch.aws_flavor_map['flavor'],
+            InstanceType=config.get_aws_flavor_map()[flavor],
             InstanceInitiatedShutdownBehavior='stop',
             NetworkInterfaces=net_interfaces,
         )[0]

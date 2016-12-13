@@ -5,7 +5,7 @@ from neutron import manager
 from neutron.common import rpc
 from neutron.plugins.common import constants as p_const
 
-from oslo_config import cfg
+from bambuk.server import config
 
 from oslo_log import log as logging
 
@@ -24,7 +24,7 @@ class HyperswitchCallback(object):
         target = messaging.Target(topic='hyperswitch-callback',
                                   version='1.0',
                                   exchange='hyperswitch',
-                                  server=cfg.CONF.host)
+                                  server=config.get_host())
         self.server = rpc.get_server(target, endpoints)
         self.server.start()
         self._plugin_property = None
