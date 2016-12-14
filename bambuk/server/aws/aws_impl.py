@@ -272,7 +272,7 @@ class AWSProvider(provider_api.ProviderDriver):
                 'hybrid_cloud_tenant_id',
                 tenant_ids)
             self._add_aws_instances_to_list(aws_instances, res)
-        if not hyperswitch_ids and not vm_ids and not tenant_ids:
+        if not names and not hyperswitch_ids and not vm_ids and not tenant_ids:
             aws_instances = self._find_vms(
                 'hybrid_cloud_type',
                 ['hyperswitch'])
