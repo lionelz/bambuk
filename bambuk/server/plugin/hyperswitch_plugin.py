@@ -56,6 +56,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         pass
 
     def create_hyperswitch(self, context, hyperswitch):
+        LOG.debug('hyperswitch %s to create.' % hyperswitch)
         hyperswitch = hyperswitch['hyperswitch']
         rabbit_hosts = None
         for rabbit_host in config.get_rabbit_hosts():
@@ -99,17 +100,25 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             hyperswitch.get('vm_id'),
             hyperswitch.get('tenant_id'),
         )
+        LOG.debug('hyperswitch %s created.' % hs)
         return hs
 
     def get_hyperswitch(self, context, hyperswitch_id, fields=None):
+        LOG.debug('hyperswitch %s to show.' % hyperswitch_id)
         hs = self._provider_impl.get_hyperswitchs(
             [hyperswitch_id]
         )
+        LOG.debug('%d hyperswitch found for %s: %s.' % (
+            len(hs), hyperswitch_id, hs))
         if len(hs) > 0:
             return hs[0]
+        else:
+            return None
 
     def delete_hyperswitch(self, context, hyperswitch_id):
-        pass
+        LOG.debug('hyperswitch %s to delete.' % hyperswitch_id)
+        self._provider_impl.delete_hyperswitch(hyperswitch_id)
+        # TODO: remove the agents 
 
     def get_hyperswitchs(self, context, filters=None, fields=None,
                          sorts=None, limit=None, marker=None,
