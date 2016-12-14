@@ -4,6 +4,11 @@ from boto3 import session
 from bambuk.server import config
 from bambuk.server.extensions import hyperswitch
 
+from oslo_log import log as logging
+
+
+LOG = logging.getLogger(__name__)
+
 
 MAX_NIC = {
     'c1.medium': 2,
@@ -242,6 +247,8 @@ class AWSProvider(hyperswitch.ProviderDriver):
                          hyperswitch_ids=None,
                          vm_ids=None,
                          tenant_ids=None):
+        LOG.debug('get hyperswitch for (%s, %s, %s).' % (
+            hyperswitch_ids, vm_ids, tenant_ids))
         res = []
         if hyperswitch_ids:
             for hyperswitch_id in hyperswitch_ids:
@@ -264,12 +271,16 @@ class AWSProvider(hyperswitch.ProviderDriver):
         if not hyperswitch_ids and not vm_ids and not tenant_ids:
             aws_instances = self._find_vms('hybrid_cloud_type', 'hyperswitch')
             self._add_aws_instances_to_list(aws_instances, res)
+        LOG.debug('found hyperswitchs for (%s, %s, %s) = %s.' % (
+            hyperswitch_ids, vm_ids, tenant_ids, res))
         return res
 
     def delete_hyperswitch(self, hyperswitch_id):
+        LOG.debug('hyperswitch to delete: %s.' % (hyperswitch_id))
         aws_instances = self._find_vms(
             'Name',
             hyperswitch_id)
+        LOG.debug('aws_instances to delete: %s.' % (aws_instances))
         for aws_instance in aws_instances:
             aws_instance.stop()
             aws_instance.wait_until_stopped()
