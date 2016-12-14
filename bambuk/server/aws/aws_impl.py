@@ -101,10 +101,10 @@ class AWSProvider(provider_api.ProviderDriver):
             'Name': 'tag:%s' % tag_name,
             'Values': ['%s' % tag_value]}])
 
-    def _find_vms(self, tag_name, tag_value):
+    def _find_vms(self, tag_name, tag_values):
         return self.ec2_resource.instances.filter(Filters=[{
             'Name': 'tag:%s' % tag_name,
-            'Values': ['%s' % tag_value]}])
+            'Values': tag_values}])
 
     def _find_image_id(self, tag_name, tag_value):
         images = self.ec2_resource.images.filter(Filters=[{
@@ -145,13 +145,13 @@ class AWSProvider(provider_api.ProviderDriver):
         if hybrid_cloud_vm_id:
             vms = self._find_vms(
                 'hybrid_cloud_vm_id',
-                hybrid_cloud_vm_id)
+                [hybrid_cloud_vm_id])
             size = sum(1 for _ in vms)
             host = 'vm-%s-%d' % (hybrid_cloud_vm_id, size)
         else:
             vms = self._find_vms(
                 'hybrid_cloud_tenant_id',
-                hybrid_cloud_tenant_id)
+                [hybrid_cloud_tenant_id])
             size = sum(1 for _ in vms)
             host = 'tenant-%s-%d' % (hybrid_cloud_tenant_id, size)
         return host
@@ -245,32 +245,37 @@ class AWSProvider(provider_api.ProviderDriver):
         return self._aws_instance_to_dict(aws_instance)
 
     def get_hyperswitchs(self,
+                         name=None,
                          hyperswitch_ids=None,
                          vm_ids=None,
                          tenant_ids=None):
-        LOG.debug('get hyperswitch for (%s, %s, %s).' % (
-            hyperswitch_ids, vm_ids, tenant_ids))
+        LOG.debug('get hyperswitch for (%s, %s, %s, %s).' % (
+            name, hyperswitch_ids, vm_ids, tenant_ids))
         res = []
+        if name:
+            aws_instances = self._find_vms(
+                'Name',
+                [name])
+            self._add_aws_instances_to_list(aws_instances, res)
         if hyperswitch_ids:
-            for hyperswitch_id in hyperswitch_ids:
-                aws_instances = self._find_vms(
-                    'Name',
-                    hyperswitch_id)
-                self._add_aws_instances_to_list(aws_instances, res)
+            aws_instances = self._find_vms(
+                'Name',
+                hyperswitch_ids)
+            self._add_aws_instances_to_list(aws_instances, res)
         if vm_ids:
-            for vm_id in vm_ids:
-                aws_instances = self._find_vms(
-                    'hybrid_cloud_vm_id',
-                    vm_id)
-                self._add_aws_instances_to_list(aws_instances, res)
+            aws_instances = self._find_vms(
+                'hybrid_cloud_vm_id',
+                vm_ids)
+            self._add_aws_instances_to_list(aws_instances, res)
         if tenant_ids:
-            for tenant_id in tenant_ids:
-                aws_instances = self._find_vms(
-                    'hybrid_cloud_tenant_id',
-                    tenant_id)
-                self._add_aws_instances_to_list(aws_instances, res)
+            aws_instances = self._find_vms(
+                'hybrid_cloud_tenant_id',
+                tenant_ids)
+            self._add_aws_instances_to_list(aws_instances, res)
         if not hyperswitch_ids and not vm_ids and not tenant_ids:
-            aws_instances = self._find_vms('hybrid_cloud_type', 'hyperswitch')
+            aws_instances = self._find_vms(
+                'hybrid_cloud_type',
+                ['hyperswitch'])
             self._add_aws_instances_to_list(aws_instances, res)
         LOG.debug('found hyperswitchs for (%s, %s, %s) = %s.' % (
             hyperswitch_ids, vm_ids, tenant_ids, res))
@@ -280,7 +285,7 @@ class AWSProvider(provider_api.ProviderDriver):
         LOG.debug('hyperswitch to delete: %s.' % (hyperswitch_id))
         aws_instances = self._find_vms(
             'Name',
-            hyperswitch_id)
+            [hyperswitch_id])
         LOG.debug('aws_instances to delete: %s.' % (aws_instances))
         for aws_instance in aws_instances:
             aws_instance.stop()

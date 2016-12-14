@@ -24,6 +24,7 @@ class ProviderDriver(object):
 
     @abc.abstractmethod
     def get_hyperswitchs(self,
+                         name=None,
                          hyperswitch_ids=None,
                          vm_ids=None,
                          tenant_ids=None):

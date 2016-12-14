@@ -127,6 +127,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         if not filters:
             filters = {}
         return self._provider_impl.get_hyperswitchs(
+            filters.get('name'),
             filters.get('id'),
             filters.get('tenant_id'),
             filters.get('vm_id')
