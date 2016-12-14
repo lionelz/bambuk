@@ -2,6 +2,7 @@
 from boto3 import session
 
 from bambuk.server import config
+from bambuk.server import provider_api
 from bambuk.server.extensions import hyperswitch
 
 from oslo_log import log as logging
@@ -82,7 +83,7 @@ MAX_NIC = {
 }
 
 
-class AWSProvider(hyperswitch.ProviderDriver):
+class AWSProvider(provider_api.ProviderDriver):
     
     def __init__(self):
         self._access_key_id = config.get_aws_access_key_id()
