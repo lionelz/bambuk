@@ -4,10 +4,9 @@ from bambuk._i18n import _
 
 class HyperSwitch(extension.NeutronClientExtension):
     resource = 'hyperswitch'
-    resource_plural = 'hyperswitchs'
-    path = 'hyperswitchs'
-    object_path = '/%s' % path
-    resource_path = '/%s/%%s' % path
+    resource_plural = '%ss' % resource
+    object_path = '/%s' % resource_plural
+    resource_path = '/%s/%%s' % resource_plural
     versions = ['2.0']
 
 

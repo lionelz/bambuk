@@ -123,6 +123,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
     def get_hyperswitchs(self, context, filters=None, fields=None,
                          sorts=None, limit=None, marker=None,
                          page_reverse=False):
+        LOG.debug('get hyperswitch %s.' % filters)
         if not filters:
             filters = {}
         return self._provider_impl.get_hyperswitchs(
