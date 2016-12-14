@@ -245,17 +245,17 @@ class AWSProvider(provider_api.ProviderDriver):
         return self._aws_instance_to_dict(aws_instance)
 
     def get_hyperswitchs(self,
-                         name=None,
+                         names=None,
                          hyperswitch_ids=None,
                          vm_ids=None,
                          tenant_ids=None):
         LOG.debug('get hyperswitch for (%s, %s, %s, %s).' % (
-            name, hyperswitch_ids, vm_ids, tenant_ids))
+            names, hyperswitch_ids, vm_ids, tenant_ids))
         res = []
-        if name:
+        if names:
             aws_instances = self._find_vms(
                 'Name',
-                [name])
+                names)
             self._add_aws_instances_to_list(aws_instances, res)
         if hyperswitch_ids:
             aws_instances = self._find_vms(
