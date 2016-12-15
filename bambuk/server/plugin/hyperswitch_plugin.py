@@ -45,35 +45,57 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
     def create_agentless_port(self, context, agentless_port):
         #   - create a provider port with the name port_id
         port = agentless_port['agentless_port']
+        port_id = port.get('port_id')
+        indice = port.get('indice')
+        vm_id = port.get('vm_id')
+        tenant_id = port.get('tenant_id')
+        flavor = port.get('flavor')
+        if not flavor:
+            flavor = config.get_default_flavor()
         net_inf = self._provider_impl.create_network_interface(
-            port.get('id'),
-            port.get('vm_id'),
-            port.get('tenant_id'),
-            self._vms_subnets[port.get('indice')],
-            self._security_groups[port.get('indice')])
+            port_id,
+            vm_id,
+            tenant_id,
+            self._vms_subnets[indice],
+            self._security_groups[indice])
         #   - retrieve the list of hyperswitch
         if config.get_level() == 'vm':
-            hs = self._provider_impl.get_hyperswitchs(
-                vm_ids=[port.get('vm_id')])
-            if not hs or len(hs) == 0:
-                hs = self.create_hyperswitch(context, {
+            hss = self._provider_impl.get_hyperswitchs(
+                vm_ids=[vm_id])
+            if not hss or len(hss) == 0:
+                hss = self.create_hyperswitch(context, {
                     'hyperswitch': {
-                        'vm_id': port.get('vm_id'),
-                        'flavor': port.get('flavor')
+                        'vm_id': vm_id,
+                        'flavor': flavor
                     }
                 })
         else:
-            hs = self._provider_impl.get_hyperswitchs(
-                tenant_ids=[port.get('tenant_id')])
-            if not hs or len(hs) == 0:
-                hs = self.create_hyperswitch(context, {
+            hss = self._provider_impl.get_hyperswitchs(
+                tenant_ids=[tenant_id])
+            if not hss or len(hss) == 0:
+                hss = self.create_hyperswitch(context, {
                     'hyperswitch': {
-                        'tenant_id': port.get('tenant_id'),
-                        'flavor': port.get('flavor')
+                        'tenant_id': tenant_id,
+                        'flavor': flavor
                     }
                 })
-        # TODO:
-        #   - calculate the user data
+        hsservers_ip = None
+        for hs in hss:
+            if hsservers_ip:
+                hsservers_ip = ', %s' % hs['private_ip']
+            else:
+                hsservers_ip = '%s' % hs['private_ip']
+        return {
+            'id': port_id,
+            'indice': indice,
+            'vm_id': vm_id,
+            'tenant_id': tenant_id,
+            'flavor': flavor,
+            'user_data': {
+                'mac%d' % indice: net_inf['mac'],
+                'hsservers%d' % indice: hsservers_ip
+            } 
+        }
         
 
     def get_agentless_port(self, context, agentless_port_id, fields=None):
