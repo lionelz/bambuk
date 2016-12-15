@@ -3,7 +3,6 @@ from boto3 import session
 
 from bambuk.server import config
 from bambuk.server import provider_api
-from bambuk.server.extensions import hyperswitch
 
 from oslo_log import log as logging
 
@@ -176,19 +175,15 @@ class AWSProvider(provider_api.ProviderDriver):
             'private_ip':  aws_instance.private_ip_address,
         }
         i = 0
-        for net_inf in aws_instance.network_interfaces_attribute:
+        for net_int in aws_instance.network_interfaces_attribute:
             if i == 0:
-                res['mgnt_ip'] = net_inf['PrivateIpAddress']
+                res['mgnt_ip'] = net_int['PrivateIpAddress']
             if i == 1:
-                res['data_ip'] = net_inf['PrivateIpAddress']
+                res['data_ip'] = net_int['PrivateIpAddress']
             if i > 1:
-                res['vms_ip_%s' % (i - 2)] = net_inf['PrivateIpAddress']
+                res['vms_ip_%s' % (i - 2)] = net_int['PrivateIpAddress']
             i = i + 1
         return res
-
-    def _add_aws_instances_to_list(self, aws_instances, d):
-        for aws_instance in aws_instances:
-            d.append(self._aws_instance_to_dict(aws_instance))
 
     def launch_hyperswitch(self,
                            user_data,
@@ -244,6 +239,13 @@ class AWSProvider(provider_api.ProviderDriver):
         aws_instance.reload()
         return self._aws_instance_to_dict(aws_instance)
 
+    def _add_vms_from_tags(self, tag, values, res):
+        if values:
+            aws_instances = self._find_vms(
+                tag, values)
+            for aws_instance in aws_instances:
+                res.append(self._aws_instance_to_dict(aws_instance))
+
     def get_hyperswitchs(self,
                          names=None,
                          hyperswitch_ids=None,
@@ -252,31 +254,14 @@ class AWSProvider(provider_api.ProviderDriver):
         LOG.debug('get hyperswitch for (%s, %s, %s, %s).' % (
             names, hyperswitch_ids, vm_ids, tenant_ids))
         res = []
-        if names:
-            aws_instances = self._find_vms(
-                'Name',
-                names)
-            self._add_aws_instances_to_list(aws_instances, res)
-        if hyperswitch_ids:
-            aws_instances = self._find_vms(
-                'Name',
-                hyperswitch_ids)
-            self._add_aws_instances_to_list(aws_instances, res)
-        if vm_ids:
-            aws_instances = self._find_vms(
-                'hybrid_cloud_vm_id',
-                vm_ids)
-            self._add_aws_instances_to_list(aws_instances, res)
-        if tenant_ids:
-            aws_instances = self._find_vms(
-                'hybrid_cloud_tenant_id',
-                tenant_ids)
-            self._add_aws_instances_to_list(aws_instances, res)
+        self._add_vms_from_tags('Name', names)
+        self._add_vms_from_tags('Name', hyperswitch_ids)
+        self._add_vms_from_tags('hybrid_cloud_vm_id', vm_ids)
+        self._add_vms_from_tags('hybrid_cloud_tenant_id', tenant_ids)
+
         if not names and not hyperswitch_ids and not vm_ids and not tenant_ids:
-            aws_instances = self._find_vms(
-                'hybrid_cloud_type',
-                ['hyperswitch'])
-            self._add_aws_instances_to_list(aws_instances, res)
+            self._add_vms_from_tags('hybrid_cloud_type', ['hyperswitch'])
+
         LOG.debug('found hyperswitchs for (%s, %s, %s) = %s.' % (
             hyperswitch_ids, vm_ids, tenant_ids, res))
         return res
@@ -293,32 +278,90 @@ class AWSProvider(provider_api.ProviderDriver):
             aws_instance.terminate()
             aws_instance.wait_until_terminated()
 
+    def _network_interface_dict(self, net_int):
+        port_id = None
+        vm_id = None
+        tenant_id = None
+        indice = None
+        for tag in net_int.tags:
+            if tag['Key'] == 'hybrid_cloud_port_id':
+                port_id = tag['Value']
+            if tag['Key'] == 'hybrid_cloud_vm_id':
+                vm_id = tag['Value']
+            if tag['Key'] == 'hybrid_cloud_tenant_id':
+                tenant_id = tag['Value']
+            if tag['Key'] == 'hybrid_cloud_indice':
+                tenant_id = tag['Value']
+        return {
+            'mac': net_int['NetworkInterface']['MacAddress'],
+            'ip': net_int['NetworkInterface']['PrivateIpAddress'],
+            'port_id': port_id,
+            'vm_id': vm_id,
+            'tenant_id': tenant_id,
+            'indice': indice
+        }
+
+    def _add_network_interfaces_from_filter(self, tag, values, res):
+        if values:
+            net_ints = self.ec2.describe_network_interfaces(
+                Filters=[{
+                    'Name': tag,
+                    'Values': values}]
+            )
+            for net_int in net_ints:
+                res.append(self._network_interface_dict(net_int))
+
     def create_network_interface(
-            self, port_id, vm_id, tenant_id, subnet, security_group):
-        res = self._find_vms.create_network_interface(
+            self,
+            port_id,
+            vm_id,
+            tenant_id,
+            indice,
+            subnet,
+            security_group):
+        net_int = self._find_vms.create_network_interface(
             SubnetId=subnet,
             Groups=[security_group]
         )
         self.ec2.create_tags(
-            Resources=[res['NetworkInterface']['NetworkInterfaceId']],
+            Resources=[net_int['NetworkInterface']['NetworkInterfaceId']],
             Tags=[{'Key': 'hybrid_cloud_port_id',
                  'Value': port_id},
                   {'Key': 'hybrid_cloud_vm_id',
                  'Value': vm_id},
                   {'Key': 'hybrid_cloud_tenant_id',
-                 'Value': tenant_id}])
-        return {
-            'mac': res['NetworkInterface']['MacAddress'],
-            'ip': res['NetworkInterface']['PrivateIpAddress']
-        }
+                 'Value': tenant_id},
+                  {'Key': 'hybrid_cloud_indice',
+                 'Value': indice}])
+        net_int.reload()
+        return self._network_interface_dict(net_int)
 
-    def get_port_id(self, private_ip):
-        nets_inf = self.ec2.describe_network_interfaces(
-            Filters=[{
-                'Name': 'addresses.private-ip-address',
-                'Values': [private_ip  ]}]
-        )
-        for net_inf in nets_inf:
-            for tag in net_inf.tags:
-                if tag['hybrid_cloud_port_id'] == 'Name':
-                    return tag['Value']
+    def delete_network_interface(
+            self, port_id):
+        net_ints = self.get_network_interfaces(self, port_id)
+        for net_int in net_ints:
+            self.ec2.delete_network_interface(
+                net_int['NetworkInterface']['NetworkInterfaceId'])
+
+    def get_network_interfaces(self,
+                               name,
+                               port_ids=None,
+                               vm_ids=None,
+                               private_ips=None,
+                               tenant_ids=None,
+                               indices=None):
+        res = []
+        self._add_network_interfaces_from_filter(
+            'tag:hybrid_cloud_port_id', [name], res)
+        self._add_network_interfaces_from_filter(
+            'tag:hybrid_cloud_port_id', port_ids, res)
+        self._add_network_interfaces_from_filter(
+            'tag:hybrid_cloud_vm_id', vm_ids, res)
+        self._add_network_interfaces_from_filter(
+            'addresses.private-ip-address', private_ips, res)
+        self._add_network_interfaces_from_filter(
+            'tag:hybrid_cloud_tenant_id', tenant_ids, res)
+        self._add_network_interfaces_from_filter(
+            'tag:hybrid_cloud_indice', indices, res)
+
+        return res

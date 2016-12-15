@@ -96,25 +96,30 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
                 'hsservers%d' % indice: hsservers_ip
             } 
         }
-        
 
     def get_agentless_port(self, context, agentless_port_id, fields=None):
-        # TODO:
-        #   - retrieve the provider network interface
-        #   - retrieve the list of hyperswitch ips
-        #   - return user data
-        pass
+        LOG.debug('get agentless port %s.' % agentless_port_id)
+        return self._provider_impl.get_network_interfaces(
+            agentless_port_id)[0]
 
     def delete_agentless_port(self, context, agentless_port_id):
-        # TODO:
-        #   - remove the provider network interface
-        pass
+        LOG.debug('removing agentless port %s.' % agentless_port_id)
+        self._provider_impl.delete_network_interface(agentless_port_id)
 
     def get_agentless_ports(self, context, filters=None, fields=None,
                             sorts=None, limit=None, marker=None,
                             page_reverse=False):
-        # TODO: filter by port_id, provider_ip, vm_id
-        pass
+        LOG.debug('get agentless ports %s.' % filters)
+        if not filters:
+            filters = {}
+        return self._provider_impl.get_network_interfaces(
+            filters.get('name'),
+            filters.get('port_id'),
+            filters.get('vm_id'),
+            filters.get('private_ip'),
+            filters.get('tenant_id'),
+            filters.get('indice')
+        )
 
     def create_hyperswitch(self, context, hyperswitch):
         LOG.debug('hyperswitch %s to create.' % hyperswitch)

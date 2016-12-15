@@ -39,6 +39,14 @@ class ProviderDriver(object):
             self, port_id, vm_id, tenant_id, subnet, security_group):
         pass
 
+    # Only get by name and private_ips is necessary to implement,
+    # the other one are optionnals
     @abc.abstractmethod
-    def get_port_id(self, private_ip):
+    def get_network_interfaces(self,
+                               name,
+                               port_ids=None,
+                               vm_ids=None,
+                               private_ips=None,
+                               tenant_ids=None,
+                               indices=None):
         pass

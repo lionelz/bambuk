@@ -1,4 +1,5 @@
 from neutronclient.common import extension
+from bambuk._i18n import _
 
 
 class Agentlessport(extension.NeutronClientExtension):
