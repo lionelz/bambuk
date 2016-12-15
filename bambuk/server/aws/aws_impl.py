@@ -241,7 +241,7 @@ class AWSProvider(provider_api.ProviderDriver):
                              Tags=tags)
 
         aws_instance.wait_until_running()
-
+        aws_instance.reload()
         return self._aws_instance_to_dict(aws_instance)
 
     def get_hyperswitchs(self,
@@ -292,3 +292,33 @@ class AWSProvider(provider_api.ProviderDriver):
             aws_instance.wait_until_stopped()
             aws_instance.terminate()
             aws_instance.wait_until_terminated()
+
+    def create_network_interface(
+            self, port_id, vm_id, tenant_id, subnet, security_group):
+        res = self._find_vms.create_network_interface(
+            SubnetId=subnet,
+            Groups=[security_group]
+        )
+        self.ec2.create_tags(
+            Resources=[res['NetworkInterface']['NetworkInterfaceId']],
+            Tags=[{'Key': 'hybrid_cloud_port_id',
+                 'Value': port_id},
+                  {'Key': 'hybrid_cloud_vm_id',
+                 'Value': vm_id},
+                  {'Key': 'hybrid_cloud_tenant_id',
+                 'Value': tenant_id}])
+        return {
+            'mac': res['NetworkInterface']['MacAddress'],
+            'ip': res['NetworkInterface']['PrivateIpAddress']
+        }
+
+    def get_port_id(self, private_ip):
+        nets_inf = self.ec2.describe_network_interfaces(
+            Filters=[{
+                'Name': 'addresses.private-ip-address',
+                'Values': [private_ip  ]}]
+        )
+        for net_inf in nets_inf:
+            for tag in net_inf.tags:
+                if tag['hybrid_cloud_port_id'] == 'Name':
+                    return tag['Value']

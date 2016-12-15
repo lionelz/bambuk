@@ -6,8 +6,20 @@ from neutron.api.v2 import resource_helper
 
 RESOURCE_ATTRIBUTE_MAP = {
     'agentless_ports': {
-        'port_id': {'allow_post': True, 'allow_put': True,
+        'id': {'allow_post': False, 'allow_put': False,
+               'is_visible': True},
+        'port_id': {'allow_post': True, 'allow_put': False,
                     'is_visible': True},
+        'flavor': {'allow_post': True, 'allow_put': False,
+                   'is_visible': True},
+        'vm_id': {'allow_post': True, 'allow_put': False,
+                  'is_visible': True, 'default': None},
+        'tenant_id': {'allow_post': True, 'allow_put': False,
+                      'is_visible': True},
+        'indice': {'allow_post': True, 'allow_put': False,
+                   'is_visible': True},
+        'user_data': {'allow_post': False, 'allow_put': False,
+                      'is_visible': True},
     },
     'hyperswitchs': {
         'id': {'allow_post': False, 'allow_put': False,

@@ -33,3 +33,12 @@ class ProviderDriver(object):
     @abc.abstractmethod
     def delete_hyperswitch(self, hyperswitch_id):
         pass
+
+    @abc.abstractmethod
+    def create_network_interface(
+            self, port_id, vm_id, tenant_id, subnet, security_group):
+        pass
+
+    @abc.abstractmethod
+    def get_port_id(self, private_ip):
+        pass
