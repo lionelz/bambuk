@@ -25,6 +25,10 @@ class AgentlessportCreate(extension.ClientExtensionCreate, Agentlessport):
         parser.add_argument(
             '--flavor', dest='flavor',
             help=_('Network Flavor for the VM: 0G, 1G or 10G.'))
+        parser.add_argument(
+            '--device-id', dest='device_id',
+            help=_('Optional Device ID of the port to create a '
+                   'dedicated hyperswitch for this device.'))
 
     def args2body(self, parsed_args):
         body = {'agentlessport':

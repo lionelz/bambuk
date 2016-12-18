@@ -81,7 +81,12 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             return None
         neutron_port = ports[0]
         indice = port.get('indice')
+        ag_device_id = agentlessport.get('device_id')
         device_id = neutron_port['device_id']
+        if ag_device_id and ag_device_id != device_id:
+            LOG.error('No device id match (received: %s, neutron: %s).' % (
+                ag_device_id, device_id))
+            return None
         tenant_id = neutron_port['tenant_id']
         flavor = port.get('flavor')
         if not flavor:
@@ -94,7 +99,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             self._vms_subnets[indice],
             self._security_groups[indice])
         #   - retrieve the list of hyperswitch
-        if config.get_level() == 'vm':
+        if config.get_level() == 'vm' or ag_device_id:
             hsservers = self._provider_impl.get_hyperswitchs(
                 device_ids=[device_id])
             if not hsservers or len(hsservers) == 0:
