@@ -323,7 +323,7 @@ class AWSProvider(provider_api.ProviderDriver):
             security_group):
         LOG.debug('create net interface (%s, %s, %s, %d, %s, %s).' % (
             port_id, vm_id, tenant_id, indice, subnet, security_group))
-        net_ints = self.get_network_interfaces(port_ids=[port_id])
+        net_ints = self.get_network_interfaces(port_id)
         if net_ints and len(net_ints) == 0:
             net_int = self.ec2.create_network_interface(
                 SubnetId=subnet,
@@ -352,7 +352,7 @@ class AWSProvider(provider_api.ProviderDriver):
 
     def delete_network_interface(
             self, port_id):
-        net_ints = self.get_network_interfaces(self, port_id)
+        net_ints = self.get_network_interfaces(port_id)
         for net_int in net_ints:
             self.ec2.delete_network_interface(
                 net_int['NetworkInterface']['NetworkInterfaceId'])

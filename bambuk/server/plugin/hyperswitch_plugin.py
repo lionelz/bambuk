@@ -42,17 +42,50 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         """Get description of the plugin."""
         return "Hyperswitch Management Plugin"
 
+    def _make_agentlessport_dict(self, port, net_int, hsservers):
+        hsservers_ip = None
+        for hsserver in hsservers:
+            if hsservers_ip:
+                hsservers_ip = ', %s' % hsserver['private_ip']
+            else:
+                hsservers_ip = '%s' % hsserver['private_ip']
+        indice = net_int['indice']
+        res = {
+            'id': port['id'],
+            'indice': indice,
+            'tenant_id': port['tenant_id'],
+            'user_data': {
+                'mac%d' % indice: port['mac_address'],
+                'hsservers%d' % indice: hsservers_ip
+            }
+        }
+        if 'vm_id' in net_int:
+            res['vm_id'] = net_int['vm_id']
+        if 'flavor' in net_int:
+            res['flavor'] = net_int['flavor']
+        return res
+
     def create_agentlessport(self, context, agentlessport):
         #   - create a provider port with the name port_id
         port = agentlessport['agentlessport']
         port_id = port.get('port_id')
+        ports = self._core_plugin.get_ports(
+            context,
+            filters={'id': [port_id]})
+        if not ports:
+            LOG.error('No Neutron port found for %s.' % (port_id))
+            return None
+        if len(ports) != 0:
+            LOG.error('%d Neutron ports found for %s.' % (
+                len(ports), port_id))
+            return None
         indice = port.get('indice')
         vm_id = port.get('vm_id')
         tenant_id = port.get('tenant_id')
         flavor = port.get('flavor')
         if not flavor:
             flavor = config.get_default_flavor()
-        _ = self._provider_impl.create_network_interface(
+        net_int = self._provider_impl.create_network_interface(
             port_id,
             vm_id,
             tenant_id,
@@ -61,50 +94,47 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             self._security_groups[indice])
         #   - retrieve the list of hyperswitch
         if config.get_level() == 'vm':
-            hss = self._provider_impl.get_hyperswitchs(
+            hsservers = self._provider_impl.get_hyperswitchs(
                 vm_ids=[vm_id])
-            if not hss or len(hss) == 0:
-                hss = [self.create_hyperswitch(context, {
+            if not hsservers or len(hsservers) == 0:
+                hsservers = [self.create_hyperswitch(context, {
                     'hyperswitch': {
                         'vm_id': vm_id,
                         'flavor': flavor
                     }
                 })]
         else:
-            hss = self._provider_impl.get_hyperswitchs(
+            hsservers = self._provider_impl.get_hyperswitchs(
                 tenant_ids=[tenant_id])
-            if not hss or len(hss) == 0:
-                hss = [self.create_hyperswitch(context, {
+            if not hsservers or len(hsservers) == 0:
+                hsservers = [self.create_hyperswitch(context, {
                     'hyperswitch': {
                         'tenant_id': tenant_id,
                         'flavor': flavor
                     }
                 })]
-        hsservers_ip = None
-        for hs in hss:
-            if hsservers_ip:
-                hsservers_ip = ', %s' % hs['private_ip']
-            else:
-                hsservers_ip = '%s' % hs['private_ip']
-        ports = self._core_plugin.get_ports(
-            context,
-            filters={'id': [port_id]})
-        return {
-            'id': port_id,
-            'indice': indice,
-            'vm_id': vm_id,
-            'tenant_id': tenant_id,
-            'flavor': flavor,
-            'user_data': {
-                'mac%d' % indice: ports[0]['mac_address'],
-                'hsservers%d' % indice: hsservers_ip
-            }
-        }
+        return self._make_agentlessport_dict(ports[0], net_int, hsservers)
 
     def get_agentlessport(self, context, agentlessport_id, fields=None):
         LOG.debug('get agentless port %s.' % agentlessport_id)
-        return self._provider_impl.get_network_interfaces(
+        ports = self._core_plugin.get_ports(
+            context,
+            filters={'id': [agentlessport_id]})
+        if not ports:
+            LOG.error('No agentless port found for %s.' % (agentlessport_id))
+            return None
+        if len(ports) != 0:
+            LOG.error('%d agentless ports found for %s.' % (
+                len(ports), agentlessport_id))
+            return None
+        net_ints = self._provider_impl.get_network_interfaces(
             agentlessport_id)[0]
+        hsservers = self._provider_impl.get_hyperswitchs(
+            vm_ids=[ports[0]['device_id']])
+        if not hsservers or len(hsservers) == 0:
+            hsservers = self._provider_impl.get_hyperswitchs(
+                tenant_ids=[ports[0]['tenant_id']])
+        return self._make_agentlessport_dict(ports[0], net_ints, hsservers)
 
     def delete_agentlessport(self, context, agentlessport_id):
         LOG.debug('removing agentless port %s.' % agentlessport_id)
@@ -116,7 +146,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         LOG.debug('get agentless ports %s.' % filters)
         if not filters:
             filters = {}
-        return self._provider_impl.get_network_interfaces(
+        net_ints = self._provider_impl.get_network_interfaces(
             filters.get('name'),
             filters.get('port_id'),
             filters.get('vm_id'),
@@ -124,6 +154,20 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             filters.get('tenant_id'),
             filters.get('indice')
         )
+        res = []
+        for net_int in net_ints:
+            ports = self._core_plugin.get_ports(
+                context,
+                filters={'id': [net_int['port_id']]})
+            if ports and len(ports) > 0:
+                hsservers = self._provider_impl.get_hyperswitchs(
+                    vm_ids=[ports[0]['device_id']])
+                if not hsservers or len(hsservers) == 0:
+                    hsservers = self._provider_impl.get_hyperswitchs(
+                    tenant_ids=[ports[0]['tenant_id']])
+                res.append(self._make_agentlessport_dict(
+                    ports[0], net_ints, hsservers))
+        return res
 
     def create_hyperswitch(self, context, hyperswitch):
         LOG.debug('hyperswitch %s to create.' % hyperswitch)
