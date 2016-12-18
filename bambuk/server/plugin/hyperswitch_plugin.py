@@ -79,9 +79,10 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             LOG.error('%d Neutron ports found for %s.' % (
                 len(ports), port_id))
             return None
+        neutron_port = ports[0]
         indice = port.get('indice')
-        vm_id = port.get('vm_id')
-        tenant_id = port.get('tenant_id')
+        vm_id = neutron_port['device_id']
+        tenant_id = neutron_port['tenant_id']
         flavor = port.get('flavor')
         if not flavor:
             flavor = config.get_default_flavor()
@@ -113,7 +114,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
                         'flavor': flavor
                     }
                 })]
-        return self._make_agentlessport_dict(ports[0], net_int, hsservers)
+        return self._make_agentlessport_dict(neutron_port, net_int, hsservers)
 
     def get_agentlessport(self, context, agentlessport_id, fields=None):
         LOG.debug('get agentless port %s.' % agentlessport_id)
