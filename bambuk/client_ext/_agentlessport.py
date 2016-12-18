@@ -35,6 +35,11 @@ class AgentlessportCreate(extension.ClientExtensionCreate, Agentlessport):
         }
         if parsed_args.flavor:
             body['agentlessport']['flavor'] = parsed_args.flavor
+        if parsed_args.vm_id:
+            body['agentlessport']['device_id'] = parsed_args.device_id
+        if parsed_args.tenant_id:
+            body['agentlessport']['tenant_id'] = parsed_args.tenant_id
+        return body
 
 
 class AgentlessportList(extension.ClientExtensionList, Agentlessport):
