@@ -338,7 +338,7 @@ class AWSProvider(provider_api.ProviderDriver):
             tags.append({'Key': 'hybrid_cloud_vm_id',
                          'Value': vm_id})
         self.ec2.create_tags(
-            Resources=[net_int['NetworkInterface']['NetworkInterfaceId']],
+            Resources=[net_int['NetworkInterfaceId']],
             Tags=tags)
         net_int.reload()
         return self._network_interface_dict(net_int)
