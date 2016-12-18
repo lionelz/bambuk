@@ -64,22 +64,22 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             hss = self._provider_impl.get_hyperswitchs(
                 vm_ids=[vm_id])
             if not hss or len(hss) == 0:
-                hss = self.create_hyperswitch(context, {
+                hss = [self.create_hyperswitch(context, {
                     'hyperswitch': {
                         'vm_id': vm_id,
                         'flavor': flavor
                     }
-                })
+                })]
         else:
             hss = self._provider_impl.get_hyperswitchs(
                 tenant_ids=[tenant_id])
             if not hss or len(hss) == 0:
-                hss = self.create_hyperswitch(context, {
+                hss = [self.create_hyperswitch(context, {
                     'hyperswitch': {
                         'tenant_id': tenant_id,
                         'flavor': flavor
                     }
-                })
+                })]
         hsservers_ip = None
         for hs in hss:
             if hsservers_ip:
