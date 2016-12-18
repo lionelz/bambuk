@@ -1,4 +1,5 @@
 from neutronclient.common import extension
+from neutronclient.neutron.v2_0 import NeutronCommand
 from bambuk._i18n import _
 
 
@@ -15,13 +16,12 @@ class AgentlessportCreate(extension.ClientExtensionCreate, Agentlessport):
 
     shell_command = 'agentlessport-create'
 
+    def get_parser(self, prog_name):
+        parser = NeutronCommand.get_parser(self, prog_name)
+        self.add_known_arguments(parser)
+        return parser
+
     def add_known_arguments(self, parser):
-        parser.add_argument(
-            'port_id', metavar='<NEUTRON_PORT_ID>',
-            help=_('Neutron Port ID.'))
-        parser.add_argument(
-            'indice', metavar='<INDICE>',
-            help=_('Indice of the port on the VM, begin from 0.'))
         parser.add_argument(
             '--flavor', dest='flavor',
             help=_('Network Flavor for the VM: 0G, 1G or 10G.'))
@@ -29,6 +29,12 @@ class AgentlessportCreate(extension.ClientExtensionCreate, Agentlessport):
             '--device-id', dest='device_id',
             help=_('Optional Device ID of the port to create a '
                    'dedicated hyperswitch for this device.'))
+        parser.add_argument(
+            'port_id', metavar='<NEUTRON_PORT_ID>',
+            help=_('Neutron Port ID.'))
+        parser.add_argument(
+            'indice', metavar='<INDICE>',
+            help=_('Indice of the port on the VM, begin from 0.'))
 
     def args2body(self, parsed_args):
         body = {'agentlessport':
@@ -41,8 +47,6 @@ class AgentlessportCreate(extension.ClientExtensionCreate, Agentlessport):
             body['agentlessport']['flavor'] = parsed_args.flavor
         if parsed_args.device_id:
             body['agentlessport']['device_id'] = parsed_args.device_id
-        if parsed_args.tenant_id:
-            body['agentlessport']['tenant_id'] = parsed_args.tenant_id
         return body
 
 
