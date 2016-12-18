@@ -319,7 +319,7 @@ class AWSProvider(provider_api.ProviderDriver):
             indice,
             subnet,
             security_group):
-        net_int = self._find_vms.create_network_interface(
+        net_int = self.ec2.create_network_interface(
             SubnetId=subnet,
             Groups=[security_group]
         )
