@@ -59,8 +59,8 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
                 'hsservers%d' % indice: hsservers_ip
             }
         }
-        if 'vm_id' in net_int:
-            res['vm_id'] = net_int['vm_id']
+        if 'device_id' in net_int:
+            res['device_id'] = net_int['device_id']
         if 'flavor' in net_int:
             res['flavor'] = net_int['flavor']
         return res
@@ -81,14 +81,14 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             return None
         neutron_port = ports[0]
         indice = port.get('indice')
-        vm_id = neutron_port['device_id']
+        device_id = neutron_port['device_id']
         tenant_id = neutron_port['tenant_id']
         flavor = port.get('flavor')
         if not flavor:
             flavor = config.get_default_flavor()
         net_int = self._provider_impl.create_network_interface(
             port_id,
-            vm_id,
+            device_id,
             tenant_id,
             indice,
             self._vms_subnets[indice],
@@ -96,11 +96,11 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         #   - retrieve the list of hyperswitch
         if config.get_level() == 'vm':
             hsservers = self._provider_impl.get_hyperswitchs(
-                vm_ids=[vm_id])
+                device_ids=[device_id])
             if not hsservers or len(hsservers) == 0:
                 hsservers = [self.create_hyperswitch(context, {
                     'hyperswitch': {
-                        'vm_id': vm_id,
+                        'device_id': device_id,
                         'flavor': flavor
                     }
                 })]
@@ -131,7 +131,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         net_ints = self._provider_impl.get_network_interfaces(
             agentlessport_id)[0]
         hsservers = self._provider_impl.get_hyperswitchs(
-            vm_ids=[ports[0]['device_id']])
+            device_ids=[ports[0]['device_id']])
         if not hsservers or len(hsservers) == 0:
             hsservers = self._provider_impl.get_hyperswitchs(
                 tenant_ids=[ports[0]['tenant_id']])
@@ -150,7 +150,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         net_ints = self._provider_impl.get_network_interfaces(
             filters.get('name'),
             filters.get('port_id'),
-            filters.get('vm_id'),
+            filters.get('device_id'),
             filters.get('private_ip'),
             filters.get('tenant_id'),
             filters.get('indice')
@@ -162,7 +162,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
                 filters={'id': [net_int['port_id']]})
             if ports and len(ports) > 0:
                 hsservers = self._provider_impl.get_hyperswitchs(
-                    vm_ids=[ports[0]['device_id']])
+                    device_ids=[ports[0]['device_id']])
                 if not hsservers or len(hsservers) == 0:
                     hsservers = self._provider_impl.get_hyperswitchs(
                     tenant_ids=[ports[0]['tenant_id']])
@@ -180,7 +180,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             else:
                 rabbit_hosts = rabbit_host
         host = self._provider_impl.get_hyperswitch_host_name(
-            hyperswitch.get('vm_id'),
+            hyperswitch.get('device_id'),
             hyperswitch.get('tenant_id'))
         user_data = {
             'rabbit_userid': config.get_rabbit_userid(),
@@ -212,7 +212,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             user_data,
             hyperswitch['flavor'],
             net_list,
-            hyperswitch.get('vm_id'),
+            hyperswitch.get('device_id'),
             hyperswitch.get('tenant_id'),
         )
         LOG.debug('hyperswitch %s created.' % hs)
@@ -250,6 +250,6 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             filters.get('name'),
             filters.get('id'),
             filters.get('tenant_id'),
-            filters.get('vm_id')
+            filters.get('device_id')
         )
 

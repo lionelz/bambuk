@@ -139,14 +139,14 @@ class AWSProvider(provider_api.ProviderDriver):
         return subnets_id
 
     def get_hyperswitch_host_name(self,
-                                  hybrid_cloud_vm_id=None,
+                                  hybrid_cloud_device_id=None,
                                   hybrid_cloud_tenant_id=None):
-        if hybrid_cloud_vm_id:
+        if hybrid_cloud_device_id:
             vms = self._find_vms(
-                'hybrid_cloud_vm_id',
-                [hybrid_cloud_vm_id])
+                'hybrid_cloud_device_id',
+                [hybrid_cloud_device_id])
             size = sum(1 for _ in vms)
-            host = 'vm-%s-%d' % (hybrid_cloud_vm_id, size)
+            host = 'vm-%s-%d' % (hybrid_cloud_device_id, size)
         else:
             vms = self._find_vms(
                 'hybrid_cloud_tenant_id',
@@ -157,18 +157,18 @@ class AWSProvider(provider_api.ProviderDriver):
 
     def _aws_instance_to_dict(self, aws_instance):
         host = None
-        vm_id = None
+        device_id = None
         tenant_id = None
         for tag in aws_instance.tags:
             if tag['Key'] == 'Name':
                 host = tag['Value']
-            if tag['Key'] == 'hybrid_cloud_vm_id':
-                vm_id = tag['Value']
+            if tag['Key'] == 'hybrid_cloud_device_id':
+                device_id = tag['Value']
             if tag['Key'] == 'hybrid_cloud_tenant_id':
                 tenant_id = tag['Value']
         res = {
             'id': host,
-            'vm_id': vm_id,
+            'device_id': device_id,
             'tenant_id': tenant_id,
             'instance_id': aws_instance.id,
             'instance_type': aws_instance.instance_type,
@@ -189,7 +189,7 @@ class AWSProvider(provider_api.ProviderDriver):
                            user_data,
                            flavor,
                            net_list,
-                           hybrid_cloud_vm_id=None,
+                           hybrid_cloud_device_id=None,
                            hybrid_cloud_tenant_id=None):
         # find the image according to a tag hybrid_cloud_image=hyperswitch
         image_id = self._find_image_id('hybrid_cloud_image', 'hyperswitch')
@@ -221,7 +221,7 @@ class AWSProvider(provider_api.ProviderDriver):
         )[0]
 
         host = self.get_hyperswitch_host_name(
-            hybrid_cloud_vm_id,
+            hybrid_cloud_device_id,
             hybrid_cloud_tenant_id)
         tags = [{'Key': 'hybrid_cloud_tenant_id',
                  'Value': hybrid_cloud_tenant_id},
@@ -229,9 +229,9 @@ class AWSProvider(provider_api.ProviderDriver):
                  'Value': 'hyperswitch'},
                 {'Key': 'Name',
                  'Value': host}]
-        if hybrid_cloud_vm_id:
-            tags.append({'Key': 'hybrid_cloud_vm_id',
-                         'Value': hybrid_cloud_vm_id})
+        if hybrid_cloud_device_id:
+            tags.append({'Key': 'hybrid_cloud_device_id',
+                         'Value': hybrid_cloud_device_id})
         self.ec2.create_tags(Resources=[aws_instance.id],
                              Tags=tags)
 
@@ -249,21 +249,21 @@ class AWSProvider(provider_api.ProviderDriver):
     def get_hyperswitchs(self,
                          names=None,
                          hyperswitch_ids=None,
-                         vm_ids=None,
+                         device_ids=None,
                          tenant_ids=None):
         LOG.debug('get hyperswitch for (%s, %s, %s, %s).' % (
-            names, hyperswitch_ids, vm_ids, tenant_ids))
+            names, hyperswitch_ids, device_ids, tenant_ids))
         res = []
         self._add_vms_from_tags('Name', names, res)
         self._add_vms_from_tags('Name', hyperswitch_ids, res)
-        self._add_vms_from_tags('hybrid_cloud_vm_id', vm_ids, res)
+        self._add_vms_from_tags('hybrid_cloud_device_id', device_ids, res)
         self._add_vms_from_tags('hybrid_cloud_tenant_id', tenant_ids, res)
 
-        if not names and not hyperswitch_ids and not vm_ids and not tenant_ids:
+        if not names and not hyperswitch_ids and not device_ids and not tenant_ids:
             self._add_vms_from_tags('hybrid_cloud_type', ['hyperswitch'], res)
 
         LOG.debug('found hyperswitchs for (%s, %s, %s) = %s.' % (
-            hyperswitch_ids, vm_ids, tenant_ids, res))
+            hyperswitch_ids, device_ids, tenant_ids, res))
         return res
 
     def delete_hyperswitch(self, hyperswitch_id):
@@ -281,14 +281,14 @@ class AWSProvider(provider_api.ProviderDriver):
     def _network_interface_dict(self, net_int):
         LOG.debug('aws net interface: %s.' % net_int)
         port_id = None
-        vm_id = None
+        device_id = None
         tenant_id = None
         indice = None
         for tag in net_int['TagSet']:
             if tag['Key'] == 'hybrid_cloud_port_id':
                 port_id = tag['Value']
-            if tag['Key'] == 'hybrid_cloud_vm_id':
-                vm_id = tag['Value']
+            if tag['Key'] == 'hybrid_cloud_device_id':
+                device_id = tag['Value']
             if tag['Key'] == 'hybrid_cloud_tenant_id':
                 tenant_id = tag['Value']
             if tag['Key'] == 'hybrid_cloud_indice':
@@ -296,7 +296,7 @@ class AWSProvider(provider_api.ProviderDriver):
         res = {
             'ip': net_int['PrivateIpAddress'],
             'port_id': port_id,
-            'vm_id': vm_id,
+            'device_id': device_id,
             'tenant_id': tenant_id,
             'indice': indice
         }
@@ -316,13 +316,13 @@ class AWSProvider(provider_api.ProviderDriver):
     def create_network_interface(
             self,
             port_id,
-            vm_id,
+            device_id,
             tenant_id,
             indice,
             subnet,
             security_group):
         LOG.debug('create net interface (%s, %s, %s, %d, %s, %s).' % (
-            port_id, vm_id, tenant_id, indice, subnet, security_group))
+            port_id, device_id, tenant_id, indice, subnet, security_group))
         net_ints = self.get_network_interfaces(port_id)
         if net_ints and len(net_ints) == 0:
             net_int = self.ec2.create_network_interface(
@@ -339,9 +339,9 @@ class AWSProvider(provider_api.ProviderDriver):
                  'Value': tenant_id},
                   {'Key': 'hybrid_cloud_indice',
                  'Value': str(indice)}]
-        if vm_id:
-            tags.append({'Key': 'hybrid_cloud_vm_id',
-                         'Value': vm_id})
+        if device_id:
+            tags.append({'Key': 'hybrid_cloud_device_id',
+                         'Value': device_id})
         self.ec2.create_tags(
             Resources=[int_id],
             Tags=tags)
@@ -360,7 +360,7 @@ class AWSProvider(provider_api.ProviderDriver):
     def get_network_interfaces(self,
                                name,
                                port_ids=None,
-                               vm_ids=None,
+                               device_ids=None,
                                private_ips=None,
                                tenant_ids=None,
                                indices=None):
@@ -370,7 +370,7 @@ class AWSProvider(provider_api.ProviderDriver):
         self._add_network_interfaces_from_filter(
             'tag:hybrid_cloud_port_id', port_ids, res)
         self._add_network_interfaces_from_filter(
-            'tag:hybrid_cloud_vm_id', vm_ids, res)
+            'tag:hybrid_cloud_device_id', device_ids, res)
         self._add_network_interfaces_from_filter(
             'addresses.private-ip-address', private_ips, res)
         self._add_network_interfaces_from_filter(

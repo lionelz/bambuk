@@ -9,7 +9,7 @@ class ProviderDriver(object):
 
     @abc.abstractmethod
     def get_hyperswitch_host_name(self,
-                                  hybrid_cloud_vm_id=None,
+                                  hybrid_cloud_device_id=None,
                                   hybrid_cloud_tenant_id=None):
         pass
 
@@ -18,7 +18,7 @@ class ProviderDriver(object):
                            user_data,
                            flavor,
                            net_list,
-                           hybrid_cloud_vm_id=None,
+                           hybrid_cloud_device_id=None,
                            hybrid_cloud_tenant_id=None):
         pass
 
@@ -26,7 +26,7 @@ class ProviderDriver(object):
     def get_hyperswitchs(self,
                          names=None,
                          hyperswitch_ids=None,
-                         vm_ids=None,
+                         device_ids=None,
                          tenant_ids=None):
         return []
 
@@ -38,7 +38,7 @@ class ProviderDriver(object):
     def create_network_interface(
             self,
             port_id,
-            vm_id,
+            device_id,
             tenant_id,
             indice,
             subnet,
@@ -51,7 +51,7 @@ class ProviderDriver(object):
     def get_network_interfaces(self,
                                name,
                                port_ids=None,
-                               vm_ids=None,
+                               device_ids=None,
                                private_ips=None,
                                tenant_ids=None,
                                indices=None):

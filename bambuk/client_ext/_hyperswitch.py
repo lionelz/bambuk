@@ -19,16 +19,9 @@ class HyperSwitchCreate(extension.ClientExtensionCreate, HyperSwitch):
         parser.add_argument(
             'flavor', metavar='<FLAVOR>',
             help=_('VM network flavor: 0G, 1G or 10G.'))
-        parser.add_argument(
-            '--vm-id', dest='vm_id',
-            help=_('VM ID if created for one VM.'))
 
     def args2body(self, parsed_args):
         body = {'hyperswitch': {'flavor': parsed_args.flavor}, }
-        if parsed_args.tenant_id:
-            body['hyperswitch']['tenant_id'] = parsed_args.tenant_id
-        if parsed_args.vm_id:
-            body['hyperswitch']['vm_id'] = parsed_args.vm_id
         return body
 
 
@@ -36,7 +29,7 @@ class HyperSwitchList(extension.ClientExtensionList, HyperSwitch):
     """List hyperswitch that belongs to a given tenant."""
 
     shell_command = 'hyperswitch-list'
-    list_columns = ['id', 'vm_id', 'tenant_id', 'flavor']
+    list_columns = ['id', 'device_id', 'tenant_id', 'flavor']
     pagination_support = True
     sorting_support = True
 

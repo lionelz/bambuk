@@ -14,8 +14,8 @@ RESOURCE_ATTRIBUTE_MAP = {
         'flavor': {'allow_post': True, 'allow_put': False,
                    'type:values': ['0G', '1G', '10G', None],
                    'is_visible': True, 'default': None},
-        'vm_id': {'allow_post': False, 'allow_put': False,
-                  'is_visible': True, 'default': None},
+        'device_id': {'allow_post': False, 'allow_put': False,
+                      'is_visible': True, 'default': None},
         'tenant_id': {'allow_post': False, 'allow_put': False,
                       'is_visible': True, 'required': True},
         'indice': {'allow_post': True, 'allow_put': False,
@@ -30,8 +30,8 @@ RESOURCE_ATTRIBUTE_MAP = {
                'is_visible': True},
         'flavor': {'allow_post': True, 'allow_put': False,
                    'is_visible': True, 'required': True},
-        'vm_id': {'allow_post': True, 'allow_put': False,
-                  'is_visible': True, 'default': None},
+        'device_id': {'allow_post': True, 'allow_put': False,
+                      'is_visible': True, 'default': None},
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'is_visible': True, 'required': True},
         'instance_id': {'allow_post': False, 'allow_put': False,
@@ -123,13 +123,10 @@ class HyperswitchPluginBase(object):
 
     @abc.abstractmethod
     def delete_hyperswitch(self, context, hyperswitch_id):
-        # hyperswitch_id = host
         pass
 
     @abc.abstractmethod
     def get_hyperswitchs(self, context, filters=None, fields=None,
                          sorts=None, limit=None, marker=None,
                          page_reverse=False):
-        # filters
-        # host, vm_id, tenant_id
         pass

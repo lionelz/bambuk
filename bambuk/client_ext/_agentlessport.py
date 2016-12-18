@@ -25,9 +25,6 @@ class AgentlessportCreate(extension.ClientExtensionCreate, Agentlessport):
         parser.add_argument(
             '--flavor', dest='flavor',
             help=_('Network Flavor for the VM: 0G, 1G or 10G.'))
-        parser.add_argument(
-            '--vm-id', dest='vm_id',
-            help=_('VM ID of the port.'))
 
     def args2body(self, parsed_args):
         body = {'agentlessport':
@@ -38,18 +35,13 @@ class AgentlessportCreate(extension.ClientExtensionCreate, Agentlessport):
         }
         if parsed_args.flavor:
             body['agentlessport']['flavor'] = parsed_args.flavor
-        if parsed_args.vm_id:
-            body['agentlessport']['vm_id'] = parsed_args.vm_id
-        if parsed_args.tenant_id:
-            body['agentlessport']['tenant_id'] = parsed_args.tenant_id
-        return body
 
 
 class AgentlessportList(extension.ClientExtensionList, Agentlessport):
     """List agentless ports that belongs to a given tenant."""
 
     shell_command = 'agentlessport-list'
-    list_columns = ['id', 'port_id', 'vm_id', 'tenant_id', 'indice']
+    list_columns = ['id', 'port_id', 'device_id', 'tenant_id', 'indice']
     pagination_support = True
     sorting_support = True
 
