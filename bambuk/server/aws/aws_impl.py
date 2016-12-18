@@ -292,7 +292,7 @@ class AWSProvider(provider_api.ProviderDriver):
                 tenant_id = tag['Value']
             if tag['Key'] == 'hybrid_cloud_indice':
                 tenant_id = tag['Value']
-        return {
+        res = {
             'mac': net_int['NetworkInterface']['MacAddress'],
             'ip': net_int['NetworkInterface']['PrivateIpAddress'],
             'port_id': port_id,
@@ -300,6 +300,8 @@ class AWSProvider(provider_api.ProviderDriver):
             'tenant_id': tenant_id,
             'indice': indice
         }
+        LOG.debug('net interface: %s.' % res)
+        return res
 
     def _add_network_interfaces_from_filter(self, tag, values, res):
         if values:
@@ -319,10 +321,13 @@ class AWSProvider(provider_api.ProviderDriver):
             indice,
             subnet,
             security_group):
+        LOG.debug('create net interface (%s, %s, %s, %d, %s, %s).' % (
+            port_id, vm_id, tenant_id, indice, subnet, security_group))
         net_int = self.ec2.create_network_interface(
             SubnetId=subnet,
             Groups=[security_group]
         )
+        LOG.debug('aws net interface: %s.' % (net_int))
         tags = [{'Key': 'hybrid_cloud_port_id',
                  'Value': port_id},
                   {'Key': 'hybrid_cloud_tenant_id',
