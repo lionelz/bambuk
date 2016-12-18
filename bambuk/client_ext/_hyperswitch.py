@@ -19,9 +19,16 @@ class HyperSwitchCreate(extension.ClientExtensionCreate, HyperSwitch):
         parser.add_argument(
             'flavor', metavar='<FLAVOR>',
             help=_('VM network flavor: 0G, 1G or 10G.'))
+        parser.add_argument(
+            '--device-id', dest='device_id',
+            help=_('Deivce ID if created for one device.'))
 
     def args2body(self, parsed_args):
         body = {'hyperswitch': {'flavor': parsed_args.flavor}, }
+        if parsed_args.tenant_id:
+            body['hyperswitch']['tenant_id'] = parsed_args.tenant_id
+        if parsed_args.vm_id:
+            body['hyperswitch']['device_id'] = parsed_args.device_id
         return body
 
 
