@@ -56,6 +56,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             port_id,
             vm_id,
             tenant_id,
+            indice,
             self._vms_subnets[indice],
             self._security_groups[indice])
         #   - retrieve the list of hyperswitch

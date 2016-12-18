@@ -36,7 +36,13 @@ class ProviderDriver(object):
 
     @abc.abstractmethod
     def create_network_interface(
-            self, port_id, vm_id, tenant_id, subnet, security_group):
+            self,
+            port_id,
+            vm_id,
+            tenant_id,
+            indice,
+            subnet,
+            security_group):
         pass
 
     # Only get by name and private_ips is necessary to implement,
