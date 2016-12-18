@@ -1,6 +1,7 @@
 import abc
 
 from neutron.api import extensions
+from neutron.api.v2 import attributes
 from neutron.api.v2 import resource_helper
 
 
@@ -9,15 +10,17 @@ RESOURCE_ATTRIBUTE_MAP = {
         'id': {'allow_post': False, 'allow_put': False,
                'is_visible': True},
         'port_id': {'allow_post': True, 'allow_put': False,
-                    'is_visible': True},
+                    'is_visible': True, 'required': True},
         'flavor': {'allow_post': True, 'allow_put': False,
                    'is_visible': True, 'default': None},
         'vm_id': {'allow_post': True, 'allow_put': False,
                   'is_visible': True, 'default': None},
         'tenant_id': {'allow_post': True, 'allow_put': False,
-                      'is_visible': True},
+                      'is_visible': True, 'required': True},
         'indice': {'allow_post': True, 'allow_put': False,
-                   'is_visible': True},
+                   'is_visible': True, 'convert_to': attributes.convert_to_int,
+                   'type:values': [0, 1, 2, 3],
+                   'required': True},
         'user_data': {'allow_post': False, 'allow_put': False,
                       'is_visible': True},
     },
@@ -25,13 +28,13 @@ RESOURCE_ATTRIBUTE_MAP = {
         'id': {'allow_post': False, 'allow_put': False,
                'is_visible': True},
         'flavor': {'allow_post': True, 'allow_put': False,
-                   'is_visible': True},
+                   'is_visible': True, 'required': True},
         'vm_id': {'allow_post': True, 'allow_put': False,
                   'is_visible': True, 'default': None},
         'tenant_id': {'allow_post': True, 'allow_put': False,
-                      'is_visible': True},
+                      'is_visible': True, 'required': True},
         'instance_id': {'allow_post': False, 'allow_put': False,
-                      'is_visible': True},
+                        'is_visible': True},
         'instance_type': {'allow_post': False, 'allow_put': False,
                           'is_visible': True},
         'private_ip': {'allow_post': False, 'allow_put': False,
