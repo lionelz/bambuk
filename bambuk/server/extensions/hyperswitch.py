@@ -5,7 +5,7 @@ from neutron.api.v2 import resource_helper
 
 
 RESOURCE_ATTRIBUTE_MAP = {
-    'agentless_ports': {
+    'agentlessports': {
         'id': {'allow_post': False, 'allow_put': False,
                'is_visible': True},
         'port_id': {'allow_post': True, 'allow_put': False,
@@ -92,19 +92,19 @@ class Hyperswitch(extensions.ExtensionDescriptor):
 class HyperswitchPluginBase(object):
 
     @abc.abstractmethod
-    def create_agentless_port(self, context, agentless_port):
+    def create_agentlessport(self, context, agentlessport):
         pass
 
     @abc.abstractmethod
-    def get_agentless_port(self, context, agentless_port_id, fields=None):
+    def get_agentlessport(self, context, agentlessport_id, fields=None):
         pass
 
     @abc.abstractmethod
-    def delete_agentless_port(self, context, agentless_port_id):
+    def delete_agentlessport(self, context, agentlessport_id):
         pass
 
     @abc.abstractmethod
-    def get_agentless_ports(self, context, filters=None, fields=None,
+    def get_agentlessports(self, context, filters=None, fields=None,
                             sorts=None, limit=None, marker=None,
                             page_reverse=False):
         pass

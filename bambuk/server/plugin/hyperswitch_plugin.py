@@ -42,9 +42,9 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         """Get description of the plugin."""
         return "Hyperswitch Management Plugin"
 
-    def create_agentless_port(self, context, agentless_port):
+    def create_agentlessport(self, context, agentlessport):
         #   - create a provider port with the name port_id
-        port = agentless_port['agentless_port']
+        port = agentlessport['agentlessport']
         port_id = port.get('port_id')
         indice = port.get('indice')
         vm_id = port.get('vm_id')
@@ -97,16 +97,16 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             } 
         }
 
-    def get_agentless_port(self, context, agentless_port_id, fields=None):
-        LOG.debug('get agentless port %s.' % agentless_port_id)
+    def get_agentlessport(self, context, agentlessport_id, fields=None):
+        LOG.debug('get agentless port %s.' % agentlessport_id)
         return self._provider_impl.get_network_interfaces(
-            agentless_port_id)[0]
+            agentlessport_id)[0]
 
-    def delete_agentless_port(self, context, agentless_port_id):
-        LOG.debug('removing agentless port %s.' % agentless_port_id)
-        self._provider_impl.delete_network_interface(agentless_port_id)
+    def delete_agentlessport(self, context, agentlessport_id):
+        LOG.debug('removing agentless port %s.' % agentlessport_id)
+        self._provider_impl.delete_network_interface(agentlessport_id)
 
-    def get_agentless_ports(self, context, filters=None, fields=None,
+    def get_agentlessports(self, context, filters=None, fields=None,
                             sorts=None, limit=None, marker=None,
                             page_reverse=False):
         LOG.debug('get agentless ports %s.' % filters)

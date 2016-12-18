@@ -3,11 +3,10 @@ from bambuk._i18n import _
 
 
 class Agentlessport(extension.NeutronClientExtension):
-    resource = 'agentless_port'
-    resource_plural = 'agentless_ports'
-    path = 'agentless_ports'
-    object_path = '/%s' % path
-    resource_path = '/%s/%%s' % path
+    resource = 'agentlessport'
+    resource_plural = '%ss' % resource
+    object_path = '/%s' % resource_plural
+    resource_path = '/%s/%%s' % resource_plural
     versions = ['2.0']
 
 
