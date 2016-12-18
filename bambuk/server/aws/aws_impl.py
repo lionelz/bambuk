@@ -294,7 +294,6 @@ class AWSProvider(provider_api.ProviderDriver):
             if tag['Key'] == 'hybrid_cloud_indice':
                 tenant_id = tag['Value']
         res = {
-            'mac': net_int['MacAddress'],
             'ip': net_int['PrivateIpAddress'],
             'port_id': port_id,
             'vm_id': vm_id,

@@ -86,6 +86,9 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
                 hsservers_ip = ', %s' % hs['private_ip']
             else:
                 hsservers_ip = '%s' % hs['private_ip']
+        ports = self._core_plugin.get_ports(
+            context,
+            filters={'id': [port_id]})
         return {
             'id': port_id,
             'indice': indice,
@@ -93,7 +96,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             'tenant_id': tenant_id,
             'flavor': flavor,
             'user_data': {
-                'mac%d' % indice: net_inf['mac'],
+                'mac%d' % indice: ports[0]['mac_address'],
                 'hsservers%d' % indice: hsservers_ip
             } 
         }
