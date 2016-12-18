@@ -11,7 +11,7 @@ RESOURCE_ATTRIBUTE_MAP = {
         'port_id': {'allow_post': True, 'allow_put': False,
                     'is_visible': True},
         'flavor': {'allow_post': True, 'allow_put': False,
-                   'is_visible': True},
+                   'is_visible': True, 'default': None},
         'vm_id': {'allow_post': True, 'allow_put': False,
                   'is_visible': True, 'default': None},
         'tenant_id': {'allow_post': True, 'allow_put': False,

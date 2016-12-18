@@ -323,16 +323,18 @@ class AWSProvider(provider_api.ProviderDriver):
             SubnetId=subnet,
             Groups=[security_group]
         )
-        self.ec2.create_tags(
-            Resources=[net_int['NetworkInterface']['NetworkInterfaceId']],
-            Tags=[{'Key': 'hybrid_cloud_port_id',
+        tags = [{'Key': 'hybrid_cloud_port_id',
                  'Value': port_id},
-                  {'Key': 'hybrid_cloud_vm_id',
-                 'Value': vm_id},
                   {'Key': 'hybrid_cloud_tenant_id',
                  'Value': tenant_id},
                   {'Key': 'hybrid_cloud_indice',
-                 'Value': indice}])
+                 'Value': indice}]
+        if vm_id:
+            tags.append({'Key': 'hybrid_cloud_vm_id',
+                         'Value': vm_id})
+        self.ec2.create_tags(
+            Resources=[net_int['NetworkInterface']['NetworkInterfaceId']],
+            Tags=tags)
         net_int.reload()
         return self._network_interface_dict(net_int)
 
