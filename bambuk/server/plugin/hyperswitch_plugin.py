@@ -52,7 +52,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         flavor = port.get('flavor')
         if not flavor:
             flavor = config.get_default_flavor()
-        net_inf = self._provider_impl.create_network_interface(
+        _ = self._provider_impl.create_network_interface(
             port_id,
             vm_id,
             tenant_id,
@@ -98,7 +98,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             'user_data': {
                 'mac%d' % indice: ports[0]['mac_address'],
                 'hsservers%d' % indice: hsservers_ip
-            } 
+            }
         }
 
     def get_agentlessport(self, context, agentlessport_id, fields=None):

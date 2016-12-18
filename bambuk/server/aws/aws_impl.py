@@ -323,10 +323,14 @@ class AWSProvider(provider_api.ProviderDriver):
             security_group):
         LOG.debug('create net interface (%s, %s, %s, %d, %s, %s).' % (
             port_id, vm_id, tenant_id, indice, subnet, security_group))
-        net_int = self.ec2.create_network_interface(
-            SubnetId=subnet,
-            Groups=[security_group]
-        )
+        net_ints = self.get_network_interfaces(port_ids=[port_id])
+        if net_ints and len(net_ints) == 0:
+            net_int = self.ec2.create_network_interface(
+                SubnetId=subnet,
+                Groups=[security_group]
+            )
+        else:
+            net_int = net_ints[0]
         LOG.debug('aws net interface: %s.' % (net_int))
         int_id = net_int['NetworkInterface']['NetworkInterfaceId']
         tags = [{'Key': 'hybrid_cloud_port_id',
