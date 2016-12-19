@@ -1,3 +1,4 @@
+
 from oslo_config import cfg
 
 OPTS_HYPERSWITCH = [

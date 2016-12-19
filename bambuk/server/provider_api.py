@@ -31,6 +31,10 @@ class ProviderDriver(object):
         return []
 
     @abc.abstractmethod
+    def start_hyperswitchs(self, hyperswitchs):
+        pass
+
+    @abc.abstractmethod
     def delete_hyperswitch(self, hyperswitch_id):
         pass
 

@@ -119,6 +119,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
                         'flavor': flavor
                     }
                 })]
+        self._provider_impl.start_hyperswitchs(hsservers)
         return self._make_agentlessport_dict(neutron_port, net_int, hsservers)
 
     def get_agentlessport(self, context, agentlessport_id, fields=None):

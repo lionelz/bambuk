@@ -266,6 +266,13 @@ class AWSProvider(provider_api.ProviderDriver):
             hyperswitch_ids, device_ids, tenant_ids, res))
         return res
 
+    def start_hyperswitchs(self, hyperswitchs):
+        LOG.debug('start hyperswitchs %s.' % hyperswitchs)
+        vals = [hyperswitch['id'] for hyperswitch in hyperswitchs]
+        aws_instances = self._find_vms('Name', vals)
+        for aws_instance in aws_instances:
+            aws_instance.start()
+        
     def delete_hyperswitch(self, hyperswitch_id):
         LOG.debug('hyperswitch to delete: %s.' % (hyperswitch_id))
         aws_instances = self._find_vms(
@@ -292,7 +299,7 @@ class AWSProvider(provider_api.ProviderDriver):
             if tag['Key'] == 'hybrid_cloud_tenant_id':
                 tenant_id = tag['Value']
             if tag['Key'] == 'hybrid_cloud_indice':
-                tenant_id = tag['Value']
+                indice = int(tag['Value'])
         res = {
             'ip': net_int['PrivateIpAddress'],
             'port_id': port_id,
@@ -305,12 +312,12 @@ class AWSProvider(provider_api.ProviderDriver):
 
     def _add_network_interfaces_from_filter(self, tag, values, res):
         if values:
-            net_ints = self.ec2.describe_network_interfaces(
+            resp = self.ec2.describe_network_interfaces(
                 Filters=[{
                     'Name': tag,
                     'Values': values}]
             )
-            for net_int in net_ints:
+            for net_int in resp['NetworkInterfaces']:
                 res.append(self._network_interface_dict(net_int))
 
     def create_network_interface(
@@ -323,16 +330,21 @@ class AWSProvider(provider_api.ProviderDriver):
             security_group):
         LOG.debug('create net interface (%s, %s, %s, %d, %s, %s).' % (
             port_id, device_id, tenant_id, indice, subnet, security_group))
-        net_ints = self.get_network_interfaces(port_id)
-        if net_ints and len(net_ints) == 0:
+        net_ints = self.ec2.describe_network_interfaces(
+            Filters=[{
+                'Name': 'tag:hybrid_cloud_port_id',
+                'Values':  [port_id]}]
+        )
+        net_int = None
+        for net_int in net_ints['NetworkInterfaces']:
+            pass
+        if not net_int:
             net_int = self.ec2.create_network_interface(
                 SubnetId=subnet,
                 Groups=[security_group]
-            )
-        else:
-            net_int = net_ints[0]
+            )['NetworkInterface']
         LOG.debug('aws net interface: %s.' % (net_int))
-        int_id = net_int['NetworkInterface']['NetworkInterfaceId']
+        int_id = net_int['NetworkInterfaceId']
         tags = [{'Key': 'hybrid_cloud_port_id',
                  'Value': port_id},
                   {'Key': 'hybrid_cloud_tenant_id',
@@ -342,12 +354,12 @@ class AWSProvider(provider_api.ProviderDriver):
         if device_id:
             tags.append({'Key': 'hybrid_cloud_device_id',
                          'Value': device_id})
-        self.ec2.create_tags(
-            Resources=[int_id],
-            Tags=tags)
-        net_ints = self.ec2.describe_network_interfaces(
+
+        self.ec2.create_tags(Resources=[int_id], Tags=tags)
+
+        resp = self.ec2.describe_network_interfaces(
             NetworkInterfaceIds=[int_id])
-        for net_int in net_ints['NetworkInterfaces']:
+        for net_int in resp['NetworkInterfaces']:
             return self._network_interface_dict(net_int)
 
     def delete_network_interface(
