@@ -75,7 +75,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         if not ports:
             LOG.error('No Neutron port found for %s.' % (port_id))
             return None
-        if len(ports) != 0:
+        if len(ports) != 1:
             LOG.error('%d Neutron ports found for %s.' % (
                 len(ports), port_id))
             return None
