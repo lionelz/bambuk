@@ -16,8 +16,6 @@ RESOURCE_ATTRIBUTE_MAP = {
                    'is_visible': True, 'default': None},
         'device_id': {'allow_post': False, 'allow_put': False,
                       'is_visible': True, 'default': None},
-        'tenant_id': {'allow_post': False, 'allow_put': False,
-                      'is_visible': True},
         'indice': {'allow_post': True, 'allow_put': False,
                    'is_visible': True, 'convert_to': attributes.convert_to_int,
                    'type:values': [0, 1, 2, 3],
