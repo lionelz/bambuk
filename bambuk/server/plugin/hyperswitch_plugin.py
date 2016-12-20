@@ -46,12 +46,13 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         LOG.debug('_make_agentlessport_dict %s, %s, %s' % (
             port, net_int, hsservers))
         hsservers_ip = None
+        indice = net_int['indice']
         for hsserver in hsservers:
             if hsservers_ip:
-                hsservers_ip = ', %s' % hsserver['private_ip']
+                hsservers_ip = '%s, %s' % (
+                    hsservers_ip, hsserver['vms_ip_%d' % indice])
             else:
-                hsservers_ip = '%s' % hsserver['private_ip']
-        indice = net_int['indice']
+                hsservers_ip = '%s' % hsserver['vms_ip_%d' % indice]
         res = {
             'id': port['id'],
             'indice': indice,

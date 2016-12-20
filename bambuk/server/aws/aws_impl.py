@@ -164,6 +164,7 @@ class AWSProvider(provider_api.ProviderDriver):
         return host
 
     def _aws_instance_to_dict(self, aws_instance):
+        LOG.debug('_aws_instance_to_dict %s' % aws_instance)
         host = None
         device_id = None
         tenant_id = None
@@ -182,8 +183,10 @@ class AWSProvider(provider_api.ProviderDriver):
             'instance_type': aws_instance.instance_type,
             'private_ip':  aws_instance.private_ip_address,
         }
-        i = 0
+        LOG.debug('network_interfaces_attribute %s' % (
+            aws_instance.network_interfaces_attribute))
         for net_int in aws_instance.network_interfaces_attribute:
+            i = net_int['Attachment']['DeviceIndex']
             if i == 0:
                 res['mgnt_ip'] = net_int['PrivateIpAddress']
             if i == 1:
