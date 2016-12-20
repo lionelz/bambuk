@@ -103,9 +103,15 @@ class AWSProvider(provider_api.ProviderDriver):
             'Values': ['%s' % tag_value]}])
 
     def _find_vms(self, tag_name, tag_values):
-        return self.ec2_resource.instances.filter(Filters=[{
-            'Name': 'tag:%s' % tag_name,
-            'Values': tag_values}])
+        return self.ec2_resource.instances.filter(Filters=[
+            {
+                'Name': 'tag:%s' % tag_name,
+                'Values': tag_values
+            },
+            {
+                'Name': 'instance-state-code',
+                'Values': ['0', '16', '32', '64', '80']
+            }])
 
     def _find_image_id(self, tag_name, tag_value):
         images = self.ec2_resource.images.filter(Filters=[{
@@ -243,8 +249,7 @@ class AWSProvider(provider_api.ProviderDriver):
 
     def _add_vms_from_tags(self, tag, values, res):
         if values:
-            aws_instances = self._find_vms(
-                tag, values)
+            aws_instances = self._find_vms(tag, values)
             for aws_instance in aws_instances:
                 res.append(self._aws_instance_to_dict(aws_instance))
 
@@ -261,7 +266,8 @@ class AWSProvider(provider_api.ProviderDriver):
         self._add_vms_from_tags('hybrid_cloud_device_id', device_ids, res)
         self._add_vms_from_tags('hybrid_cloud_tenant_id', tenant_ids, res)
 
-        if not names and not hyperswitch_ids and not device_ids and not tenant_ids:
+        if (not names and not hyperswitch_ids
+                and not device_ids and not tenant_ids):
             self._add_vms_from_tags('hybrid_cloud_type', ['hyperswitch'], res)
 
         LOG.debug('found hyperswitchs for (%s, %s, %s) = %s.' % (
