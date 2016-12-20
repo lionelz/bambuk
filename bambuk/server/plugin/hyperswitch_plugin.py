@@ -135,7 +135,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
                 len(ports), agentlessport_id))
             return None
         net_ints = self._provider_impl.get_network_interfaces(
-            agentlessport_id)[0]
+            [agentlessport_id])[0]
         hsservers = self._provider_impl.get_hyperswitchs(
             device_ids=[ports[0]['device_id']])
         if not hsservers or len(hsservers) == 0:
