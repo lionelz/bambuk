@@ -43,6 +43,8 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         return "Hyperswitch Management Plugin"
 
     def _make_agentlessport_dict(self, port, net_int, hsservers):
+        LOG.debug('_make_agentlessport_dict %s, %s, %s' % (
+            port, net_int, hsservers))
         hsservers_ip = None
         for hsserver in hsservers:
             if hsservers_ip:
@@ -130,18 +132,18 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         if not ports:
             LOG.error('No agentless port found for %s.' % (agentlessport_id))
             return None
-        if len(ports) != 0:
+        if len(ports) != 1:
             LOG.error('%d agentless ports found for %s.' % (
                 len(ports), agentlessport_id))
             return None
-        net_ints = self._provider_impl.get_network_interfaces(
+        net_int = self._provider_impl.get_network_interfaces(
             [agentlessport_id])[0]
         hsservers = self._provider_impl.get_hyperswitchs(
             device_ids=[ports[0]['device_id']])
         if not hsservers or len(hsservers) == 0:
             hsservers = self._provider_impl.get_hyperswitchs(
                 tenant_ids=[ports[0]['tenant_id']])
-        return self._make_agentlessport_dict(ports[0], net_ints, hsservers)
+        return self._make_agentlessport_dict(ports[0], net_int, hsservers)
 
     def delete_agentlessport(self, context, agentlessport_id):
         LOG.debug('removing agentless port %s.' % agentlessport_id)
@@ -173,7 +175,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
                     hsservers = self._provider_impl.get_hyperswitchs(
                     tenant_ids=[ports[0]['tenant_id']])
                 res.append(self._make_agentlessport_dict(
-                    ports[0], net_ints, hsservers))
+                    ports[0], net_int, hsservers))
         return res
 
     def create_hyperswitch(self, context, hyperswitch):

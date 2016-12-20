@@ -27,7 +27,7 @@ class HyperSwitchCreate(extension.ClientExtensionCreate, HyperSwitch):
         body = {'hyperswitch': {'flavor': parsed_args.flavor}, }
         if parsed_args.tenant_id:
             body['hyperswitch']['tenant_id'] = parsed_args.tenant_id
-        if parsed_args.vm_id:
+        if parsed_args.device_id:
             body['hyperswitch']['device_id'] = parsed_args.device_id
         return body
 

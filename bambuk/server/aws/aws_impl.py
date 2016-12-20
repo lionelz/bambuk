@@ -1,4 +1,6 @@
 
+import time
+
 from boto3 import session
 
 from bambuk.server import config
@@ -345,6 +347,12 @@ class AWSProvider(provider_api.ProviderDriver):
                 SubnetId=subnet,
                 Groups=[security_group]
             )['NetworkInterface']
+            resp = None
+            while not resp or not resp['NetworkInterfaces']:
+                resp = self.ec2.describe_network_interfaces(
+                    NetworkInterfaceIds=[net_int['NetworkInterfaceId']])
+                time.sleep(1)
+            
         LOG.debug('aws net interface: %s.' % (net_int))
         int_id = net_int['NetworkInterfaceId']
         tags = [{'Key': 'hybrid_cloud_port_id',
@@ -375,7 +383,7 @@ class AWSProvider(provider_api.ProviderDriver):
         )
         for net_int in resp['NetworkInterfaces']:
             self.ec2.delete_network_interface(
-                net_int['NetworkInterfaceId'])
+                NetworkInterfaceId=net_int['NetworkInterfaceId'])
 
     def get_network_interfaces(self,
                                names=None,
