@@ -52,10 +52,8 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             'id': port['id'],
             'indice': indice,
             'tenant_id': port['tenant_id'],
-            'user_data': {
-                'mac%d' % indice: port['mac_address'],
-                'hsservers%d' % indice: hsservers_ip
-            }
+            'user_data': 'mac%d = %s\nhsservers%d = %s' % (
+                indice, port['mac_address'], indice, hsservers_ip)
         }
         if 'device_id' in net_int:
             res['device_id'] = net_int['device_id']
