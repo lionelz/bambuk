@@ -2,6 +2,7 @@
 import time
 
 from boto3 import session
+from botocore import exceptions
 
 from bambuk.server import config
 from bambuk.server import provider_api
@@ -121,20 +122,17 @@ class AWSProvider(provider_api.ProviderDriver):
             return img.id
 
     def get_sgs(self):
-        resp = self.ec2.describe_security_groups(
-            Filters=[{
-                'Name': 'Name',
-                'Values': [config.get_hs_sg_name(), config.get_vm_sg_name()]}]
-        )
         hs_sg, vm_sg = None, None
-        for sg in resp['SecurityGroups']:
-            for tag in sg['Tags']:
-                if tag['Name'] == 'Name':
-                    if tag['Value'] == config.get_hs_sg_name():
-                        hs_sg = sg['GroupId']
-                    if tag['Value'] == config.get_vm_sg_name():
-                        vm_sg = sg['GroupId']
-        if (hs_sg, vm_sg) == (None, None):
+        try:
+            resp = self.ec2.describe_security_groups(
+                GroupNames=[config.get_hs_sg_name(), config.get_vm_sg_name()]
+            )
+            for sg in resp['SecurityGroups']:
+                if sg['GroupName'] == config.get_hs_sg_name():
+                    hs_sg = sg['GroupId']
+                if sg['GroupName'] == config.get_vm_sg_name():
+                    vm_sg = sg['GroupId']
+        except exceptions.ClientError:
             hs_sg = self.ec2.create_security_group(
                 GroupName=config.get_hs_sg_name(),
                 Description='%s security group' % config.get_hs_sg_name(),
@@ -145,22 +143,23 @@ class AWSProvider(provider_api.ProviderDriver):
                 Description='%s security group' % config.get_vm_sg_name(),
                 VpcId=config.get_aws_vpc()
             )['GroupId']
-            
-            self.ec2.authorize_security_group_egress(
-                GroupId=hs_sg,
-                SourceSecurityGroupName=vm_sg,
-            )
-            self.ec2.authorize_security_group_egress(
-                GroupId=vm_sg,
-                SourceSecurityGroupName=hs_sg,
-            )
             self.ec2.authorize_security_group_ingress(
                 GroupId=hs_sg,
-                SourceSecurityGroupName=vm_sg,
+                IpPermissions=[{
+                    'IpProtocol': '-1',
+                    'FromPort': 0,
+                    'ToPort': 65535,
+                    'UserIdGroupPairs': [{'GroupId': vm_sg}],
+                }]
             )
             self.ec2.authorize_security_group_ingress(
                 GroupId=vm_sg,
-                SourceSecurityGroupName=hs_sg,
+                IpPermissions=[{
+                    'IpProtocol': '-1',
+                    'FromPort': 0,
+                    'ToPort': 65535,
+                    'UserIdGroupPairs': [{'GroupId': hs_sg}],
+                }]
             )
         return hs_sg, vm_sg
 

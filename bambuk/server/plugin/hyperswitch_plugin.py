@@ -23,7 +23,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             self._provider_impl = None
         self._hyper_switch_api = hyper_switch_api.HyperswitchAPI()
         self._vms_subnets = self._provider_impl.get_vms_subnet()
-        self._hs_sg, self._vm_sg  = self._provider_impl.get_sgs(self)
+        self._hs_sg, self._vm_sg  = self._provider_impl.get_sgs()
 
     @property
     def _core_plugin(self):
