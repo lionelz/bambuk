@@ -29,6 +29,7 @@ class HyperswitchCallback(object):
         self.server.start()
         self._plugin_property = None
         self._l3_plugin_property = None
+        self._hyperswitch_plugin_property = None
         super(HyperswitchCallback, self).__init__()
 
     @property
