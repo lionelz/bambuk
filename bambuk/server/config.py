@@ -16,6 +16,12 @@ OPTS_HYPERSWITCH = [
                help=_("Data network security group id or name.")),
     cfg.ListOpt('vms_cidr', default=['172.31.300.0/24', '172.31.310.0/24'],
                help=_("Data network security group id or name.")),
+    cfg.StrOpt('hs_sg_name',
+               default='hs_sg_vms_123456',
+               help=_("Hyper Switch Security Group Name for VPN Server NICS.")),
+    cfg.StrOpt('vm_sg_name',
+               default='vm_sg_vms_123456',
+               help=_("Provider Security Group Name for agent less NICs.")),
     cfg.StrOpt('default_flavor', default='1G',
                help=_("Default flavor for hyperswitch creation.")),
     cfg.StrOpt('aws_access_key_id',
@@ -26,7 +32,7 @@ OPTS_HYPERSWITCH = [
                help=_("AWS Region Name.")),
     cfg.StrOpt('aws_hs_default_flavor',
                default='1G',
-                help=_("AWS HyperSwitch default flavor")),
+               help=_("AWS HyperSwitch default flavor")),
     cfg.DictOpt('aws_hs_flavor_map',
                 default={'0G': 't2.micro',
                          '1G': 'c4.large',
@@ -82,6 +88,14 @@ def get_data_security_group():
 
 def get_vms_cidr():
     return cfg.CONF.hyperswitch.vms_cidr
+
+
+def get_hs_sg_name():
+    return cfg.CONF.hyperswitch.hs_sg_name
+
+
+def get_vm_sg_name():
+    return cfg.CONF.hyperswitch.vm_sg_name
 
 
 def get_default_flavor():

@@ -120,6 +120,50 @@ class AWSProvider(provider_api.ProviderDriver):
         for img in images:
             return img.id
 
+    def get_sgs(self):
+        resp = self.ec2.describe_security_groups(
+            Filters=[{
+                'Name': 'Name',
+                'Values': [config.get_hs_sg_name(), config.get_vm_sg_name()]}]
+        )
+        hs_sg, vm_sg = None, None
+        for sg in resp['SecurityGroups']:
+            for tag in sg['Tags']:
+                if tag['Name'] == 'Name':
+                    if tag['Value'] == config.get_hs_sg_name():
+                        hs_sg = sg['GroupId']
+                    if tag['Value'] == config.get_vm_sg_name():
+                        vm_sg = sg['GroupId']
+        if (hs_sg, vm_sg) == (None, None):
+            hs_sg = self.ec2.create_security_group(
+                GroupName=config.get_hs_sg_name(),
+                Description='%s security group' % config.get_hs_sg_name(),
+                VpcId=config.get_aws_vpc()
+            )['GroupId']
+            vm_sg = self.ec2.create_security_group(
+                GroupName=config.get_vm_sg_name(),
+                Description='%s security group' % config.get_vm_sg_name(),
+                VpcId=config.get_aws_vpc()
+            )['GroupId']
+            
+            self.ec2.authorize_security_group_egress(
+                GroupId=hs_sg,
+                SourceSecurityGroupName=vm_sg,
+            )
+            self.ec2.authorize_security_group_egress(
+                GroupId=vm_sg,
+                SourceSecurityGroupName=hs_sg,
+            )
+            self.ec2.authorize_security_group_ingress(
+                GroupId=hs_sg,
+                SourceSecurityGroupName=vm_sg,
+            )
+            self.ec2.authorize_security_group_ingress(
+                GroupId=vm_sg,
+                SourceSecurityGroupName=hs_sg,
+            )
+        return hs_sg, vm_sg
+
     def get_vms_subnet(self):
         vpc = self.ec2_resource.Vpc(config.get_aws_vpc())
         subnets_id = []

@@ -23,12 +23,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             self._provider_impl = None
         self._hyper_switch_api = hyper_switch_api.HyperswitchAPI()
         self._vms_subnets = self._provider_impl.get_vms_subnet()
-        # TODO: create security groups for HSs and VMs
-        self._security_groups = [
-            config.get_data_security_group(),
-            config.get_data_security_group(),
-            config.get_data_security_group()
-        ]
+        self._hs_sg, self._vm_sg  = self._provider_impl.get_sgs(self)
 
     @property
     def _core_plugin(self):
@@ -100,7 +95,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             tenant_id,
             indice,
             self._vms_subnets[indice],
-            self._security_groups[indice])
+            self._vm_sg)
         #   - retrieve the list of hyperswitch
         if config.get_level() == 'vm' or ag_device_id:
             hsservers = self._provider_impl.get_hyperswitchs(
@@ -214,7 +209,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             net_list.append(
                 {
                     'name': vm_subnet,
-                    'security_group': config.get_data_security_group()
+                    'security_group': self._hs_sg
                 }
             )
         hs = self._provider_impl.launch_hyperswitch(
