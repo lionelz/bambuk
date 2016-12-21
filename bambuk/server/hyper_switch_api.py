@@ -45,6 +45,14 @@ class HyperswitchCallback(object):
                     p_const.L3_ROUTER_NAT))
         return self._l3_plugin_property
 
+    @property
+    def _hyperswitch_plugin(self):
+        if self._hyperswitch_plugin_property is None:
+            self._hyperswitch_plugin_property = (
+                manager.NeutronManager.get_service_plugins().get(
+                    'hyperswitch'))
+        return self._hyperswitch_plugin_property
+
     def get_vif_for_provider_ip(self, context, **kwargs):
         """
             Return a port data from a provider IP.
@@ -53,18 +61,17 @@ class HyperswitchCallback(object):
         host_id = kwargs['host_id']
         evt = kwargs['evt']
         LOG.debug('get_vif_for_provider_ip %s' % provider_ip)
-        #TODO: add subnet_id in configuration and add to the query
-        p_ports = self._plugin.get_ports(context, filters={
-            'fixed_ips': {
-                'ip_address': [provider_ip]
-            }})
-        LOG.debug('provider port %s' % p_ports)
+        
+        p_ports = self._hyperswitch_plugin.get_agentlessports(
+            context, filters={'private_ip': [provider_ip]})
+        LOG.debug('provider ports for %s: %s' % (
+            provider_ip, p_ports))
         if len(p_ports) != 1:
             LOG.warn('%d ports for %s' % (len(p_ports), provider_ip))
             return None
 
         ports = self._plugin.get_ports(context, filters={
-            'id': [p_ports[0]['name']]
+            'id': [p_ports[0]['id']]
         })
         LOG.debug('hyper port %s' % ports)
         if len(ports) != 1:

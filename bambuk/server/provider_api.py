@@ -4,6 +4,10 @@ import abc
 class ProviderDriver(object):
 
     @abc.abstractmethod
+    def get_sgs(self):
+        return None, None
+
+    @abc.abstractmethod
     def get_vms_subnet(self):
         return []
 
