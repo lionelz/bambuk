@@ -262,20 +262,26 @@ HyperSwitch Agents
 
 Modules
 *******
-The hyperswitch VM cantains 4 agents to implements the neutron functionalities.
+The hyperswitch VM includes 4 agents to implements the neutron functionalities.
 
 Neutron Openvswitch agent
 -------------------------
-Standard Neutron Openswitch agent that should match with the cascaded openstack version for L2/SG functionalities.
+Standard Neutron Openvswitch agent that should match with the cascaded openstack version for L2/SG functionalities.
 
 Neutron L3 Agent
 ----------------
 Standard Neutron L3 agent in DVR mode that should match with the cascaded openstack version for DVR router deployment.
 
+Neutron Metadata Agent
+----------------------
+Standard Neutron Metadata agent necessary on each compute node for DVR deployment that should match with the cascaded openstack version.
+
 Hyperswitch Local Controller Agent
 -----------------------------------
-Local Controller for br-vpn
+TODOL Local Controller for br-vpn design
 
-TODO: Lazy plug vif diagram::
+TODO: Lazy plug vif diagram and flow diagram::
    =-
+
+
 
