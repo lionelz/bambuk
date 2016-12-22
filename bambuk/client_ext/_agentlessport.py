@@ -33,14 +33,14 @@ class AgentlessportCreate(extension.ClientExtensionCreate, Agentlessport):
             'port_id', metavar='<NEUTRON_PORT_ID>',
             help=_('Neutron Port ID.'))
         parser.add_argument(
-            'indice', metavar='<INDICE>',
-            help=_('Indice of the port on the VM, begin from 0.'))
+            'index', metavar='<INDEX>',
+            help=_('Index of the port on the VM, begin from 0.'))
 
     def args2body(self, parsed_args):
         body = {'agentlessport':
             {
                 'port_id': parsed_args.port_id,
-                'indice': parsed_args.indice,
+                'index': parsed_args.index,
             }
         }
         if parsed_args.flavor:
@@ -54,7 +54,8 @@ class AgentlessportList(extension.ClientExtensionList, Agentlessport):
     """List agentless ports that belongs to a given tenant."""
 
     shell_command = 'agentlessport-list'
-    list_columns = ['id', 'port_id', 'device_id', 'tenant_id', 'indice']
+    list_columns = ['id', 'port_id', 'device_id', 'tenant_id', 'index',
+                    'user_data']
     pagination_support = True
     sorting_support = True
 

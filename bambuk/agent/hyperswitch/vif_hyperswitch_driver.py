@@ -62,7 +62,7 @@ class HyperSwitchVIFDriver(vif_driver.HyperVIFDriver):
     def __init__(self, *args, **kwargs):
         super(HyperSwitchVIFDriver, self).__init__()
         self.call_back = kwargs.get('call_back')
-        self.instance_id = kwargs.get('instance_id')
+        self.device_id = kwargs.get('device_id')
         self.mgnt_nic = cfg.CONF.hyperswitch.network_mngt_interface
         self.vm_nic = cfg.CONF.hyperswitch.network_vms_interface
         self.idle_timeout = cfg.CONF.hyperswitch.idle_timeout
@@ -93,7 +93,7 @@ class HyperSwitchVIFDriver(vif_driver.HyperVIFDriver):
     def get_bridge_name(self):
         return 'br-int'
 
-    def create_br_vnic(self, instance_id, vif_id, mac):
+    def create_br_vnic(self, device_id, vif_id, mac):
         br_name = self.get_br_name(vif_id)
         br_int_veth, qbr_veth = self.get_veth_pair_names(vif_id)
 
@@ -104,7 +104,7 @@ class HyperSwitchVIFDriver(vif_driver.HyperVIFDriver):
         # add in br-int the veth
         hu.create_ovs_vif_port(self.get_bridge_name(),
                                qbr_veth, vif_id,
-                               mac, instance_id)
+                               mac, device_id)
 
         tap_name = self.get_tap_name(vif_id)
 
@@ -160,10 +160,10 @@ class HyperSwitchVIFDriver(vif_driver.HyperVIFDriver):
                                                  vif_hypervm_driver=self)
         self.open_flow_app.start()
 
-    def plug(self, instance_id, hyper_vif):
+    def plug(self, device_id, hyper_vif):
         pass
 
-    def unplug(self, instance_id, hyper_vif):
+    def unplug(self, device_id, hyper_vif):
         pass
 
     def cleanup(self):
@@ -254,14 +254,14 @@ class VPNBridgeHandler(ofp_handler.OFPHandler):
                     LOG.warn('port not found for IP: %s' % provider_ip)
                     return
                 LOG.info("get_vif_for_provider_ip=%s" % result)
-                instance_id = result['instance_id']
+                device_id = result['device_id']
                 vif_id = result['vif_id']
                 mac = result['mac']
 
                 # - call plug: create the tap/bridge/...
                 # - create the bridge/br-int entry....
                 tap, br = self._vif_driver.create_br_vnic(
-                    instance_id,
+                    device_id,
                     vif_id,
                     mac)
 

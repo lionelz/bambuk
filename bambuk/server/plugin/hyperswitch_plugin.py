@@ -41,19 +41,19 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
         LOG.debug('_make_agentlessport_dict %s, %s, %s' % (
             port, net_int, hsservers))
         hsservers_ip = None
-        indice = net_int['indice']
+        index = net_int['index']
         for hsserver in hsservers:
             if hsservers_ip:
                 hsservers_ip = '%s, %s' % (
-                    hsservers_ip, hsserver['vms_ip_%d' % indice])
+                    hsservers_ip, hsserver['vms_ip_%d' % index])
             else:
-                hsservers_ip = '%s' % hsserver['vms_ip_%d' % indice]
+                hsservers_ip = '%s' % hsserver['vms_ip_%d' % index]
         res = {
             'id': port['id'],
-            'indice': indice,
+            'index': index,
             'tenant_id': port['tenant_id'],
             'user_data': 'mac%d = %s\nhsservers%d = %s' % (
-                indice, port['mac_address'], indice, hsservers_ip)
+                index, port['mac_address'], index, hsservers_ip)
         }
         if 'device_id' in net_int:
             res['device_id'] = net_int['device_id']
@@ -76,7 +76,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
                 len(ports), port_id))
             return None
         neutron_port = ports[0]
-        indice = port.get('indice')
+        index = port.get('index')
         ag_device_id = agentlessport.get('device_id')
         device_id = neutron_port['device_id']
         if ag_device_id and ag_device_id != device_id:
@@ -91,8 +91,8 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             port_id,
             device_id,
             tenant_id,
-            indice,
-            self._vms_subnets[indice],
+            index,
+            self._vms_subnets[index],
             self._vm_sg)
         #   - retrieve the list of hyperswitch
         if config.get_level() == 'vm' or ag_device_id:
@@ -155,7 +155,7 @@ class HyperswitchPlugin(hyperswitch.HyperswitchPluginBase):
             filters.get('device_id'),
             filters.get('private_ip'),
             filters.get('tenant_id'),
-            filters.get('indice')
+            filters.get('index')
         )
         res = []
         for net_int in net_ints:

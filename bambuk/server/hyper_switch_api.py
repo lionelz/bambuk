@@ -99,7 +99,7 @@ class HyperswitchCallback(object):
                     router['id'],
                     {'router': {'admin_state_up': True}})
 
-        return {'instance_id': port['device_id'],
+        return {'device_id': port['device_id'],
                 'vif_id': port['id'],
                 'mac': port['mac_address']}
 

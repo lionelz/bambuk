@@ -8,10 +8,10 @@ $userdata = ConvertFrom-StringData -StringData $UserData
 # hsservers1 = xxx.xxx.xxx.xxx, xxx.xxx.xxx.xxx
 # mac1 = 00:00:00:00:00:00
 
-$hsservers = $userdata.hsservers$i
-$mac = $userdata.mac$i
-$need-restart = $false
 $i = 0
+$hsservers = $userdata."hsservers$i"
+$mac = $userdata."mac$i"
+$need-restart = $false
 
 While ($mac -ne "") {
     $hsservers = $hsservers -split ","
@@ -62,8 +62,8 @@ While ($mac -ne "") {
     openvpn-gui.exe --connect c-hs.ovpn --config_dir $openvpn_conf_dir
 
     $i = $i + 1
-	$hsservers = $userdata.hsservers$i
-	$mac = $userdata.mac$i
+	$hsservers = $userdata."hsservers$i"
+	$mac = $userdata."mac$i"
 }
 if ($need-restart) {
     Restart-Computer

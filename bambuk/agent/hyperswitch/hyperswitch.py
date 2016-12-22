@@ -45,7 +45,7 @@ class HyperSwitchAgent(object):
 
     def __init__(self):
         super(HyperSwitchAgent, self).__init__()
-        self.instance_id = cfg.CONF.host
+        self.device_id = cfg.CONF.host
 
         # the queue client for plug/unplug calls from nova driver
         endpoints = [self]
@@ -60,7 +60,7 @@ class HyperSwitchAgent(object):
 
         # instance according to configuration
         self.vif_driver = vif_hyperswitch_driver.HyperSwitchVIFDriver(
-            instance_id=self.instance_id,
+            device_id=self.device_id,
             call_back=self.call_back)
 
         self.vif_driver.startup_init()

@@ -3,7 +3,7 @@ from oslo_config import cfg
 
 OPTS_HYPERSWITCH = [
     cfg.StrOpt('provider', default='aws',
-               help=_("Provider: aws|hec.")),
+               help=_("Provider: aws|openstack.")),
     cfg.StrOpt('level', default='tenant',
                help=_("Level: tenant|vm.")),
     cfg.StrOpt('mgnt_network',
@@ -14,7 +14,9 @@ OPTS_HYPERSWITCH = [
                help=_("Data network id or name.")),
     cfg.StrOpt('data_security_group',
                help=_("Data network security group id or name.")),
-    cfg.ListOpt('vms_cidr', default=['172.31.300.0/24', '172.31.310.0/24'],
+    cfg.ListOpt('vms_cidr', default=['172.31.192.0/20',
+                                     '172.31.208.0/20',
+                                     '172.31.224.0/20'],
                help=_("Data network security group id or name.")),
     cfg.StrOpt('hs_sg_name',
                default='hs_sg_vms_123456',
@@ -30,9 +32,6 @@ OPTS_HYPERSWITCH = [
                help=_("AWS Secret Access Key.")),
     cfg.StrOpt('aws_region_name',
                help=_("AWS Region Name.")),
-    cfg.StrOpt('aws_hs_default_flavor',
-               default='1G',
-               help=_("AWS HyperSwitch default flavor")),
     cfg.DictOpt('aws_hs_flavor_map',
                 default={'0G': 't2.micro',
                          '1G': 'c4.large',
@@ -112,10 +111,6 @@ def get_aws_secret_access_key():
 
 def get_aws_region_name():
     return cfg.CONF.hyperswitch.aws_region_name
-
-
-def get_aws_hs_default_flavor():
-    return cfg.CONF.hyperswitch.aws_hs_default_flavor
 
 
 def get_aws_hs_flavor_map():

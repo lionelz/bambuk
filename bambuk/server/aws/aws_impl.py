@@ -344,7 +344,7 @@ class AWSProvider(provider_api.ProviderDriver):
         port_id = None
         device_id = None
         tenant_id = None
-        indice = None
+        index = None
         for tag in net_int['TagSet']:
             if tag['Key'] == 'hybrid_cloud_port_id':
                 port_id = tag['Value']
@@ -352,14 +352,14 @@ class AWSProvider(provider_api.ProviderDriver):
                 device_id = tag['Value']
             if tag['Key'] == 'hybrid_cloud_tenant_id':
                 tenant_id = tag['Value']
-            if tag['Key'] == 'hybrid_cloud_indice':
-                indice = int(tag['Value'])
+            if tag['Key'] == 'hybrid_cloud_index':
+                index = int(tag['Value'])
         res = {
             'ip': net_int['PrivateIpAddress'],
             'port_id': port_id,
             'device_id': device_id,
             'tenant_id': tenant_id,
-            'indice': indice
+            'index': index
         }
         LOG.debug('net interface: %s.' % res)
         return res
@@ -381,11 +381,11 @@ class AWSProvider(provider_api.ProviderDriver):
             port_id,
             device_id,
             tenant_id,
-            indice,
+            index,
             subnet,
             security_group):
         LOG.debug('create net interface (%s, %s, %s, %d, %s, %s).' % (
-            port_id, device_id, tenant_id, indice, subnet, security_group))
+            port_id, device_id, tenant_id, index, subnet, security_group))
         net_ints = self.ec2.describe_network_interfaces(
             Filters=[{
                 'Name': 'tag:hybrid_cloud_port_id',
@@ -411,8 +411,8 @@ class AWSProvider(provider_api.ProviderDriver):
                  'Value': port_id},
                   {'Key': 'hybrid_cloud_tenant_id',
                  'Value': tenant_id},
-                  {'Key': 'hybrid_cloud_indice',
-                 'Value': str(indice)},
+                  {'Key': 'hybrid_cloud_index',
+                 'Value': str(index)},
                   {'Key': 'hybrid_cloud_type',
                  'Value': 'agentlessport'}]
         if device_id:
@@ -443,7 +443,7 @@ class AWSProvider(provider_api.ProviderDriver):
                                device_ids=None,
                                private_ips=None,
                                tenant_ids=None,
-                               indices=None):
+                               indexes=None):
         res = []
         self._add_network_interfaces_from_filter(
             'tag:hybrid_cloud_port_id', names, res)
@@ -456,9 +456,9 @@ class AWSProvider(provider_api.ProviderDriver):
         self._add_network_interfaces_from_filter(
             'tag:hybrid_cloud_tenant_id', tenant_ids, res)
         self._add_network_interfaces_from_filter(
-            'tag:hybrid_cloud_indice', indices, res)
+            'tag:hybrid_cloud_index', indexes, res)
         if (not names and not port_ids and not device_ids and not private_ips
-                and not tenant_ids and not indices):
+                and not tenant_ids and not indexes):
             self._add_network_interfaces_from_filter(
                 'tag:hybrid_cloud_type', ['agentlessport'], res)
         return res

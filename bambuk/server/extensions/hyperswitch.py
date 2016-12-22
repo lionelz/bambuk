@@ -18,10 +18,10 @@ RESOURCE_ATTRIBUTE_MAP = {
                       'is_visible': True, 'default': None},
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'is_visible': True, 'default': None},
-        'indice': {'allow_post': True, 'allow_put': False,
-                   'is_visible': True, 'convert_to': attributes.convert_to_int,
-                   'type:values': [0, 1, 2, 3],
-                   'required': True},
+        'index': {'allow_post': True, 'allow_put': False,
+                  'is_visible': True, 'convert_to': attributes.convert_to_int,
+                  'type:values': [0, 1, 2, 3],
+                  'required': True},
         'user_data': {'allow_post': False, 'allow_put': False,
                       'is_visible': True},
     },
@@ -50,7 +50,6 @@ RESOURCE_ATTRIBUTE_MAP = {
                      'is_visible': True},
         'vms_ip_2': {'allow_post': False, 'allow_put': False,
                      'is_visible': True},
-            
     },
 }
 
