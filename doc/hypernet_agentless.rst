@@ -278,10 +278,11 @@ Standard Neutron Metadata agent necessary on each compute node for DVR deploymen
 
 Hyperswitch Local Controller Agent
 -----------------------------------
-TODOL Local Controller for br-vpn design
+TODO: Local Controller for br-vpn diagram::
+   -
 
 TODO: Lazy plug vif diagram and flow diagram::
-   =-
+   -
 
 
 
